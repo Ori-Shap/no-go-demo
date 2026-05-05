@@ -836,14 +836,54 @@ function CountUp({ to, prefix = "", suffix = "", decimals = 0, dur = 1100 }) {
 /* ===== Running ===== */
 function Running({ onBackToRecommend }) {
   const [elapsed, setElapsed] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [workflow, setWorkflow] = useState(HOW_IT_WORKS.map(s => ({ ...s })));
+  const [messages, setMessages] = useState([]);
+  const [editInput, setEditInput] = useState("");
+  const [typing, setTyping] = useState(false);
+  const [expandedStep, setExpandedStep] = useState(null);
+  const chatEndRef = React.useRef(null);
 
   // Simulate time passing — stats count up
   useEffect(() => {
+    if (paused) return;
     const t = setTimeout(() => { if (elapsed < 30) setElapsed(e => e + 1); }, 100);
     return () => clearTimeout(t);
-  }, [elapsed]);
+  }, [elapsed, paused]);
+
+  useEffect(() => {
+    if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [messages, typing]);
 
   const progress = Math.min(1, elapsed / 30);
+
+  function sendEdit() {
+    const text = editInput.trim();
+    if (!text || typing) return;
+    setEditInput("");
+    setMessages(m => [...m, { from: "user", text }]);
+    setTyping(true);
+
+    const lower = text.toLowerCase();
+    const match = WORKFLOW_REPLIES.find(r => r.keywords.some(k => lower.includes(k)));
+
+    setTimeout(() => {
+      const reply = match ? match.text : WORKFLOW_DEFAULT_REPLY;
+      setMessages(m => [...m, { from: "ai", text: reply }]);
+      if (match) {
+        setWorkflow(wf => {
+          const next = [...wf];
+          if (match.change) {
+            next[match.change.idx] = { ...next[match.change.idx], label: match.change.label, detail: match.change.detail };
+          }
+          if (match.add) next.push(match.add);
+          return next;
+        });
+      }
+      setTyping(false);
+    }, 800 + Math.random() * 600);
+  }
 
   return (
     <div className="fade-in">
@@ -854,13 +894,15 @@ function Running({ onBackToRecommend }) {
       </p>
 
       {/* Active workflow card */}
-      <div className="running-card live" style={{ marginTop: 28 }}>
+      <div className={"running-card" + (paused ? "" : " live")} style={{ marginTop: 28 }}>
         <div className="running-card-header">
           <div>
             <div className="running-card-title">Chasing late rent</div>
             <div className="running-card-sub">Deployed just now · runs every weekday at 8am</div>
           </div>
-          <span className="pill go"><span className="dot" />Live</span>
+          <span className={paused ? "pill wait" : "pill go"}>
+            <span className="dot" />{paused ? "Paused" : "Live"}
+          </span>
         </div>
         <div className="running-stats">
           <div className="running-stat">
@@ -872,7 +914,7 @@ function Running({ onBackToRecommend }) {
             <div className="running-stat-k">hours saved</div>
           </div>
           <div className="running-stat">
-            <div className="running-stat-v tabular" style={{ color: "var(--go)" }}>$<CountUp to={Math.round(92 * progress)} />k</div>
+            <div className="running-stat-v tabular" style={{ color: paused ? "var(--ink-3)" : "var(--go)" }}>$<CountUp to={Math.round(92 * progress)} />k</div>
             <div className="running-stat-k">collected</div>
           </div>
           <div className="running-stat">
@@ -880,6 +922,59 @@ function Running({ onBackToRecommend }) {
             <div className="running-stat-k">ROI</div>
           </div>
         </div>
+
+        {/* Actions */}
+        <div className="running-actions">
+          <button className={"btn sm " + (paused ? "" : "ghost")} onClick={() => setPaused(p => !p)}>
+            {paused ? "Resume" : "Pause"}
+          </button>
+          <button className={"btn sm ghost"} onClick={() => setEditing(e => !e)}>
+            {editing ? "Close editor" : "Edit workflow"}
+          </button>
+        </div>
+
+        {/* Inline edit */}
+        {editing && (
+          <div className="running-edit fade-in">
+            <div className="steps-friendly" style={{ marginTop: 0 }}>
+              {workflow.map((s, i) => (
+                <div className="sf-row" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
+                  <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
+                  <div>
+                    <div className="lbl">{s.label}</div>
+                    {expandedStep === i && <div className="det fade-in">{s.detail}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {messages.length > 0 && (
+              <div className="setup-chat" style={{ marginTop: 12 }}>
+                <div className="setup-chat-body">
+                  {messages.map((m, i) => (
+                    <div key={i} className={"bubble " + (m.from === "ai" ? "ai" : "draft")} style={m.from === "user" ? { alignSelf: "flex-end" } : {}}>
+                      {m.text}
+                    </div>
+                  ))}
+                  {typing && <div className="bubble ai" style={{ color: "var(--ink-3)" }}>Thinking…</div>}
+                  <div ref={chatEndRef} />
+                </div>
+              </div>
+            )}
+
+            <div className="setup-chat-standalone" style={{ marginTop: 12 }}>
+              <input
+                type="text"
+                placeholder="Change anything — tone, timing, escalation…"
+                value={editInput}
+                onChange={e => setEditInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && sendEdit()}
+                disabled={typing}
+              />
+              <button className="btn sm" onClick={sendEdit} disabled={!editInput.trim() || typing}>Send</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Back to recommend */}

@@ -1161,6 +1161,23 @@ h1.display strong { font-weight: 600; }
   margin-top: 4px;
 }
 
+.running-card.live { }
+.running-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.running-edit {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.running-edit .steps-friendly {
+  border-radius: var(--radius-sm);
+}
+
 .running-queue {
   display: flex;
   flex-direction: column;
