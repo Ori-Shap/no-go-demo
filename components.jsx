@@ -48,14 +48,18 @@ function Sidebar({ current, onJump, completed }) {
   );
 }
 
-/* ===== 1. Connect ===== */
-function Connect({ onContinue, connectAllTrigger, autoAdvance, connected, setConnected }) {
+/* ===== 1. Connect (with inline scan) ===== */
+function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnected }) {
   const [authing, setAuthing] = useState(null);
+  const [phase, setPhase] = useState("connect"); // "connect" | "scanning" | "scanned"
+  const [progress, setProgress] = useState(0);
+  const [scanDone, setScanDone] = useState(false);
+  const [showConnected, setShowConnected] = useState(false);
 
   const required = CONNECTOR_CATALOG.filter(c => c.recommended).map(c => c.id);
   const reqDone = required.filter(id => connected[id]).length;
   const totalConnected = Object.values(connected).filter(v => v === true).length;
-  const canContinue = reqDone >= 3;
+  const canLookAround = reqDone >= 3;
 
   function connectAll() {
     setAuthing(null);
@@ -70,11 +74,29 @@ function Connect({ onContinue, connectAllTrigger, autoAdvance, connected, setCon
 
   useEffect(() => {
     if (!autoAdvance) return;
-    if (canContinue) {
-      const t = setTimeout(() => onContinue(), 900);
+    if (canLookAround && phase === "connect") {
+      const t = setTimeout(() => startScan(), 900);
       return () => clearTimeout(t);
     }
-  }, [autoAdvance, canContinue]);
+  }, [autoAdvance, canLookAround, phase]);
+
+  // Run scan animation when phase flips to "scanning"
+  useEffect(() => {
+    if (phase !== "scanning") return;
+    let raf, start = performance.now(), dur = 4000;
+    const tick = (t) => {
+      const p = Math.min(1, (t - start) / dur);
+      setProgress(p);
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else setScanDone(true);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [phase]);
+
+  function startScan() {
+    setPhase("scanning");
+  }
 
   function start(c) {
     if (connected[c.id]) setConnected(s => ({ ...s, [c.id]: false }));
@@ -86,6 +108,10 @@ function Connect({ onContinue, connectAllTrigger, autoAdvance, connected, setCon
     setConnected(s => ({ ...s, [c.id]: "loading" }));
     setTimeout(() => setConnected(s => ({ ...s, [c.id]: true })), 800);
   }
+
+  const total = SCAN_TARGETS.reduce((s, t) => s + t.count, 0);
+  const scanned = Math.round(total * progress);
+  const found = Math.min(4, Math.floor(progress * 5));
 
   return (
     <div className="fade-in">
@@ -110,7 +136,7 @@ function Connect({ onContinue, connectAllTrigger, autoAdvance, connected, setCon
           <button
             className="btn sm"
             onClick={connectAll}
-            disabled={totalConnected === CONNECTOR_CATALOG.length}
+            disabled={totalConnected === CONNECTOR_CATALOG.length || phase !== "connect"}
             style={{ alignSelf: "flex-start", marginTop: 8 }}
           >
             {totalConnected === CONNECTOR_CATALOG.length ? "All connected ✓" : "Connect all apps"}
@@ -118,40 +144,113 @@ function Connect({ onContinue, connectAllTrigger, autoAdvance, connected, setCon
         </div>
       </div>
 
+      {/* Connected apps bar */}
+      {totalConnected > 0 && (
+        <div className="connected-bar" style={{ marginTop: 20 }}>
+          <div className="connected-bar-header" onClick={() => setShowConnected(s => !s)} style={{ cursor: "pointer" }}>
+            <span style={{ fontSize: 13, color: "var(--ink-2)" }}>
+              {totalConnected} connected
+            </span>
+            <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{showConnected ? "▲ Hide" : "▼ Show"}</span>
+          </div>
+          {showConnected && (
+            <div className="connected-icons-row">
+              {CONNECTOR_CATALOG.filter(c => connected[c.id] === true).map(c => (
+                <div className="connected-icon-item" key={c.id}>
+                  <img src={c.icon} alt={c.label} title={c.label} />
+                  {phase === "connect" && (
+                    <button className="disconnect-btn" onClick={() => start(c)} title="Disconnect">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="connector-list">
-        {CONNECTOR_CATALOG.map(c => {
+        {CONNECTOR_CATALOG.filter(c => connected[c.id] !== true).map(c => {
           const state = connected[c.id];
-          const isOn = state === true;
           const isLoading = state === "loading";
           return (
-            <div className={"connector" + (isOn ? " connected" : "")} key={c.id}>
-              <div className="ic">{c.emoji}</div>
-              <div>
-                <div className="row" style={{ gap: 10 }}>
-                  <span className="label">{c.label}</span>
-                  {c.recommended && <span className="pill go"><span className="dot" />Recommended</span>}
-                </div>
-                <div className="desc">{c.desc}</div>
+            <div className="connector" key={c.id}>
+              {c.recommended && <span className="pill go rec-pill"><span className="dot" />Rec</span>}
+              <div className="info-trigger">
+                i
+                <div className="info-tooltip">{c.desc}</div>
               </div>
+              <div className="ic"><img src={c.icon} alt={c.label} /></div>
+              <span className="label">{c.label}</span>
               <div className="right">
-                {isOn ? (
-                  <>
-                    <span className="pill go" style={{ marginBottom: 8 }}><span className="dot" />Connected</span>
-                    <br />
-                    <button className="btn ghost sm" onClick={() => start(c)}>Disconnect</button>
-                  </>
-                ) : isLoading ? (
-                  <span className="row" style={{ gap: 8, justifyContent: "flex-end" }}>
+                {isLoading ? (
+                  <span className="row" style={{ gap: 8, justifyContent: "center" }}>
                     <span className="spinner" /> <span style={{ fontSize: 14, color: "var(--ink-3)" }}>Connecting…</span>
                   </span>
-                ) : (
-                  <button className="btn" onClick={() => start(c)} style={{ height: 44, fontSize: 15 }}>Connect</button>
-                )}
+                ) : phase === "connect" ? (
+                  <button className="btn" onClick={() => start(c)}>Connect</button>
+                ) : null}
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Scan section — appears inline after "Look around" is clicked */}
+      {phase !== "connect" && (
+        <div className="fade-in" style={{ marginTop: 36 }}>
+          <div className="scan-hero">
+            <div>
+              <div className="big tabular">{scanned.toLocaleString()}</div>
+              <div className="label">things read so far · out of {total.toLocaleString()}</div>
+              <div style={{ marginTop: 14, fontSize: 15, color: "var(--ink)" }}>
+                {found > 0 ? `Found ${found} type${found === 1 ? "" : "s"} of repetitive work` : "Looking for patterns…"}
+              </div>
+            </div>
+            <div className="scan-ring">
+              <svg width="200" height="200" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="86" fill="none" stroke="oklch(92% 0.01 130)" strokeWidth="14" />
+                <circle
+                  cx="100" cy="100" r="86" fill="none"
+                  stroke="oklch(58% 0.10 150)" strokeWidth="14"
+                  strokeDasharray={2 * Math.PI * 86}
+                  strokeDashoffset={2 * Math.PI * 86 * (1 - progress)}
+                  strokeLinecap="round"
+                  transform="rotate(-90 100 100)"
+                  style={{ transition: "stroke-dashoffset 80ms linear" }}
+                />
+              </svg>
+              <div style={{ position: "absolute", textAlign: "center" }}>
+                <div className="serif tabular" style={{ fontSize: 40, lineHeight: 1 }}>{Math.round(progress * 100)}<span style={{ fontSize: 22 }}>%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="scan-list">
+            {SCAN_TARGETS.map((t, i) => {
+              const start = i * 0.10;
+              const end = start + 0.70;
+              const local = Math.max(0, Math.min(1, (progress - start) / (end - start)));
+              const isDone = local >= 1;
+              const isActive = local > 0 && !isDone;
+              return (
+                <div key={t.id} className={"scan-row" + (isDone ? " done" : isActive ? " active" : "")}>
+                  <div className="check" />
+                  <div>
+                    <div className="label">{t.label}</div>
+                    {isActive && <div className="sub">{Math.round(t.count * local).toLocaleString()} of {t.count.toLocaleString()}</div>}
+                    {isDone && <div className="sub">All {t.count.toLocaleString()} read</div>}
+                  </div>
+                  <div className="count">{isDone ? "Done" : isActive ? `${Math.round(local * 100)}%` : "Up next"}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {authing && (
         <div className="modal-bg" onClick={() => setAuthing(null)}>
@@ -174,139 +273,29 @@ function Connect({ onContinue, connectAllTrigger, autoAdvance, connected, setCon
       )}
 
       <div className="cta">
-        <div className="text">
-          {canContinue
-            ? <span><strong>Looking good!</strong> Let's see what No-Go AI finds.</span>
-            : <span>Connect at least <strong>three</strong> of the recommended apps to keep going.</span>}
-        </div>
-        <button className="btn lg" disabled={!canContinue} onClick={onContinue}>
-          Continue <Arrow />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ===== 2a. Connected snapshot ===== */
-function Connected({ onScan, connected }) {
-  const list = CONNECTED_SYSTEMS.filter(s => connected[s.id] === true);
-  const fallback = list.length === 0 ? CONNECTED_SYSTEMS.slice(0, 4) : list;
-  const count = fallback.length;
-  return (
-    <div className="fade-in">
-      <div className="greeting">All set</div>
-      <h1 className="display">{count} app{count === 1 ? "" : "s"} connected. Ready to <strong>look around?</strong></h1>
-      <p className="lede">
-        No-Go AI is going to read the last 90 days from your apps to find work it can help with.
-        It only reads — it won't send or change anything.
-      </p>
-
-      <div className="systems-grid" style={{ marginTop: 28 }}>
-        {fallback.map(s => (
-          <div className="connector connected" key={s.id} style={{ gridTemplateColumns: "56px 1fr auto" }}>
-            <div className="ic">{s.emoji}</div>
-            <div>
-              <div className="label">{s.label}</div>
-              <div className="desc">{s.desc}</div>
+        {phase === "connect" ? (
+          <>
+            <div className="text">
+              {canLookAround
+                ? <span><strong>Looking good!</strong> Let's see what No-Go AI finds.</span>
+                : <span>Connect at least <strong>three</strong> of the recommended apps to keep going.</span>}
             </div>
-            <div className="muted" style={{ fontSize: 13 }}>{s.time}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="cta">
-        <div className="text">It usually takes about a minute. You can keep working — we'll let you know when it's done.</div>
-        <button className="btn lg" onClick={onScan}>Look around <Arrow /></button>
-      </div>
-    </div>
-  );
-}
-
-/* ===== 2b. Scan ===== */
-function Scan({ onDone }) {
-  const [progress, setProgress] = useState(0);
-  const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    let raf, start = performance.now(), dur = 4000;
-    const tick = (t) => {
-      const p = Math.min(1, (t - start) / dur);
-      setProgress(p);
-      if (p < 1) raf = requestAnimationFrame(tick);
-      else setDone(true);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  const total = SCAN_TARGETS.reduce((s, t) => s + t.count, 0);
-  const scanned = Math.round(total * progress);
-  const found = Math.min(4, Math.floor(progress * 5));
-
-  return (
-    <div className="fade-in">
-      <div className="greeting">Looking around your apps now</div>
-      <h1 className="display">Reading the last 90 days.</h1>
-      <p className="lede">
-        This is just to find patterns — repetitive work that No-Go AI could help with.
-        You'll see the suggestions in a moment.
-      </p>
-
-      <div className="scan-hero">
-        <div>
-          <div className="big tabular">{scanned.toLocaleString()}</div>
-          <div className="label">things read so far · out of {total.toLocaleString()}</div>
-          <div style={{ marginTop: 14, fontSize: 15, color: "var(--ink)" }}>
-            {found > 0 ? `Found ${found} type${found === 1 ? "" : "s"} of repetitive work` : "Looking for patterns…"}
-          </div>
-        </div>
-        <div className="scan-ring">
-          <svg width="200" height="200" viewBox="0 0 200 200">
-            <circle cx="100" cy="100" r="86" fill="none" stroke="oklch(92% 0.01 130)" strokeWidth="14" />
-            <circle
-              cx="100" cy="100" r="86" fill="none"
-              stroke="oklch(58% 0.10 150)" strokeWidth="14"
-              strokeDasharray={2 * Math.PI * 86}
-              strokeDashoffset={2 * Math.PI * 86 * (1 - progress)}
-              strokeLinecap="round"
-              transform="rotate(-90 100 100)"
-              style={{ transition: "stroke-dashoffset 80ms linear" }}
-            />
-          </svg>
-          <div style={{ position: "absolute", textAlign: "center" }}>
-            <div className="serif tabular" style={{ fontSize: 40, lineHeight: 1 }}>{Math.round(progress * 100)}<span style={{ fontSize: 22 }}>%</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div className="scan-list">
-        {SCAN_TARGETS.map((t, i) => {
-          const start = i * 0.10;
-          const end = start + 0.70;
-          const local = Math.max(0, Math.min(1, (progress - start) / (end - start)));
-          const isDone = local >= 1;
-          const isActive = local > 0 && !isDone;
-          return (
-            <div key={t.id} className={"scan-row" + (isDone ? " done" : isActive ? " active" : "")}>
-              <div className="check" />
-              <div>
-                <div className="label">{t.label}</div>
-                {isActive && <div className="sub">{Math.round(t.count * local).toLocaleString()} of {t.count.toLocaleString()}</div>}
-                {isDone && <div className="sub">All {t.count.toLocaleString()} read</div>}
-              </div>
-              <div className="count">{isDone ? "Done" : isActive ? `${Math.round(local * 100)}%` : "Up next"}</div>
+            <button className="btn lg" disabled={!canLookAround} onClick={startScan}>
+              Look around <Arrow />
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="text">
+              {scanDone
+                ? <span><strong>All done.</strong> No-Go AI found 4 things it could help with. Let's look.</span>
+                : <span>This is read-only. Nothing is being sent or changed.</span>}
             </div>
-          );
-        })}
-      </div>
-
-      <div className="cta">
-        <div className="text">
-          {done
-            ? <span><strong>All done.</strong> No-Go AI found 4 things it could help with. Let's look.</span>
-            : <span>This is read-only. Nothing is being sent or changed.</span>}
-        </div>
-        <button className="btn lg" disabled={!done} onClick={onDone}>See what we found <Arrow /></button>
+            <button className="btn lg" disabled={!scanDone} onClick={onDone}>
+              See what we found <Arrow />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -314,6 +303,8 @@ function Scan({ onDone }) {
 
 /* ===== 3. Recommend ===== */
 function Recommend({ onSetup }) {
+  const [whyOpen, setWhyOpen] = useState(false);
+
   return (
     <div className="fade-in">
       <div className="greeting">Here's what No-Go AI thinks</div>
@@ -326,12 +317,15 @@ function Recommend({ onSetup }) {
       <div className="rec-headline">
         <div className="label">
           <span className="pill primary"><span className="dot" />Best place to start</span>
+          <span className="info-trigger" style={{ position: "relative", top: 0, right: 0, marginLeft: 8 }}>
+            i
+            <div className="info-tooltip" style={{ top: 28, left: -100, right: "auto" }}>
+              We saw 94 late-rent emails last month. They're almost the same every time — friendly
+              reminder, then attach the balance, then check back in a week.
+            </div>
+          </span>
         </div>
         <h2>Chasing late rent</h2>
-        <p className="why">
-          We saw 94 late-rent emails last month. They're almost the same every time — friendly
-          reminder, then attach the balance, then check back in a week.
-        </p>
 
         <div className="rec-stats">
           <div className="rec-stat">
@@ -349,17 +343,26 @@ function Recommend({ onSetup }) {
         </div>
       </div>
 
-      <h3 className="serif" style={{ fontWeight: 400, fontSize: 26, marginTop: 36, marginBottom: 8, letterSpacing: "-0.015em" }}>
-        Why this one first?
-      </h3>
-      <div className="checks-friendly">
-        {RECOMMEND_REASONS.map((r, i) => (
-          <div className="cf-row" key={i}>
-            <div className="ic" />
-            <div>{r}</div>
-          </div>
-        ))}
+      <div
+        className="collapsible-header"
+        onClick={() => setWhyOpen(o => !o)}
+        style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginTop: 36, marginBottom: 8 }}
+      >
+        <h3 className="serif" style={{ fontWeight: 400, fontSize: 26, margin: 0, letterSpacing: "-0.015em" }}>
+          Why this one first?
+        </h3>
+        <span style={{ fontSize: 14, color: "var(--ink-3)", transition: "transform 200ms", transform: whyOpen ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
       </div>
+      {whyOpen && (
+        <div className="checks-friendly fade-in">
+          {RECOMMEND_REASONS.map((r, i) => (
+            <div className="cf-row" key={i}>
+              <div className="ic" />
+              <div>{r}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="rec-list">
         <div className="rec-list-head">
@@ -788,5 +791,5 @@ function Expansion({ onRestart }) {
 }
 
 Object.assign(window, {
-  Sidebar, Connect, Connected, Scan, Recommend, Setup, Inbox, Savings, Expansion,
+  Sidebar, Connect, Recommend, Setup, Inbox, Savings, Expansion,
 });

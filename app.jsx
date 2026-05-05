@@ -50,14 +50,14 @@ function App() {
   }
 
   const stepFromScreen = {
-    connect: "connect", connected: "connect", scan: "discover",
+    connect: "connect",
     recommend: "recommend", setup: "deploy", inbox: "approve",
     savings: "measure", expansion: "measure",
   };
 
   function jump(stepId) {
     const target = {
-      connect: "connect", discover: "scan", recommend: "recommend",
+      connect: "connect", discover: "connect", recommend: "recommend",
       deploy: "setup", approve: "inbox", measure: "savings",
     }[stepId];
     setScreen(target);
@@ -66,9 +66,7 @@ function App() {
 
   let view;
   switch (screen) {
-    case "connect": view = <Connect onContinue={() => go("connected", "connect")} connectAllTrigger={connectAllTrigger} autoAdvance={t.autoAdvance} connected={connected} setConnected={setConnected} />; break;
-    case "connected": view = <Connected onScan={() => go("scan")} connected={connected} />; break;
-    case "scan": view = <Scan onDone={() => go("recommend", "discover")} />; break;
+    case "connect": view = <Connect onDone={() => go("recommend", "connect")} connectAllTrigger={connectAllTrigger} autoAdvance={t.autoAdvance} connected={connected} setConnected={setConnected} />; break;
     case "recommend": view = <Recommend onSetup={() => go("setup", "recommend")} />; break;
     case "setup": view = <Setup onReady={() => go("inbox", "deploy")} />; break;
     case "inbox": view = <Inbox onDone={() => go("savings", "approve")} />; break;
@@ -89,7 +87,7 @@ function App() {
         <TweakToggle label="Auto-continue after connect" value={t.autoAdvance}
                      onChange={(v) => setTweak('autoAdvance', v)} />
         <TweakSelect label="Jump to screen" value={t.skipToScreen}
-                     options={["connect","connected","scan","recommend","setup","inbox","savings","expansion"]}
+                     options={["connect","recommend","setup","inbox","savings","expansion"]}
                      onChange={(v) => setTweak('skipToScreen', v)} />
 
         <TweakSection label="Look & feel" />

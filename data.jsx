@@ -1,12 +1,12 @@
 // Friendlier mock data for "Abigail" version
 
 const CONNECTOR_CATALOG = [
-  { id: "gmail", label: "Gmail", emoji: "✉️", desc: "Where most of the day's work happens.", recommended: true },
-  { id: "qb", label: "QuickBooks", emoji: "📒", desc: "Who paid, who hasn't, what's due.", recommended: true },
-  { id: "appfolio", label: "AppFolio", emoji: "🏢", desc: "Tenants, leases, and balances.", recommended: true },
-  { id: "drive", label: "Google Drive", emoji: "📁", desc: "Invoices and lease documents.", recommended: true },
-  { id: "outlook", label: "Outlook", emoji: "📨", desc: "If you use Microsoft instead of Gmail." },
-  { id: "stripe", label: "Stripe", emoji: "💳", desc: "Confirms online payments." },
+  { id: "gmail", label: "Gmail", icon: "icons/gmail.png", desc: "Where most of the day's work happens.", recommended: true },
+  { id: "qb", label: "QuickBooks", icon: "icons/quickbooks.png", desc: "Who paid, who hasn't, what's due.", recommended: true },
+  { id: "appfolio", label: "AppFolio", icon: "icons/appfolio.png", desc: "Tenants, leases, and balances.", recommended: true },
+  { id: "drive", label: "Google Drive", icon: "icons/drive.png", desc: "Invoices and lease documents.", recommended: true },
+  { id: "outlook", label: "Outlook", icon: "icons/outlook.png", desc: "If you use Microsoft instead of Gmail." },
+  { id: "stripe", label: "Stripe", icon: "icons/stripe.png", desc: "Confirms online payments." },
 ];
 
 const CONNECTED_SYSTEMS = [
@@ -112,11 +112,10 @@ const EXPANSION = [
 
 const STEPS = [
   { id: "connect", label: "Connect", n: 1 },
-  { id: "discover", label: "Look around", n: 2 },
-  { id: "recommend", label: "Suggest", n: 3 },
-  { id: "deploy", label: "Set up", n: 4 },
-  { id: "approve", label: "Your inbox", n: 5 },
-  { id: "measure", label: "What we did", n: 6 },
+  { id: "recommend", label: "Suggest", n: 2 },
+  { id: "deploy", label: "Set up", n: 3 },
+  { id: "approve", label: "Your inbox", n: 4 },
+  { id: "measure", label: "What we did", n: 5 },
 ];
 
 Object.assign(window, {
