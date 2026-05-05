@@ -49,18 +49,36 @@ function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
+  const [waPopup, setWaPopup] = useAppState(null);
+
   const stepFromScreen = {
     connect: "connect",
-    recommend: "recommend", setup: "deploy", inbox: "approve",
+    recommend: "recommend", setup: "deploy",
     savings: "measure", expansion: "measure",
   };
 
   function jump(stepId) {
     const target = {
       connect: "connect", discover: "connect", recommend: "recommend",
-      deploy: "setup", approve: "inbox", measure: "savings",
+      deploy: "setup", measure: "savings",
     }[stepId];
     setScreen(target);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
+  function onDeploy() {
+    done("deploy");
+    // Open WhatsApp demo in a popup window
+    const w = 440, h = 720;
+    const left = window.screenX + window.outerWidth - w - 40;
+    const top = window.screenY + 60;
+    const popup = window.open(
+      "whatsapp/index.html",
+      "whatsapp-demo",
+      `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`
+    );
+    setWaPopup(popup);
+    setScreen("savings");
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
@@ -68,8 +86,7 @@ function App() {
   switch (screen) {
     case "connect": view = <Connect onDone={() => go("recommend", "connect")} connectAllTrigger={connectAllTrigger} autoAdvance={t.autoAdvance} connected={connected} setConnected={setConnected} />; break;
     case "recommend": view = <Recommend onSetup={() => go("setup", "recommend")} />; break;
-    case "setup": view = <Setup onReady={() => go("inbox", "deploy")} />; break;
-    case "inbox": view = <Inbox onDone={() => go("savings", "approve")} />; break;
+    case "setup": view = <Setup onReady={onDeploy} />; break;
     case "savings": view = <Savings onNext={() => go("expansion")} />; break;
     case "expansion": view = <Expansion onRestart={() => { setCompleted([]); setConnected({}); go("connect"); }} />; break;
     default: view = null;
@@ -87,7 +104,7 @@ function App() {
         <TweakToggle label="Auto-continue after connect" value={t.autoAdvance}
                      onChange={(v) => setTweak('autoAdvance', v)} />
         <TweakSelect label="Jump to screen" value={t.skipToScreen}
-                     options={["connect","recommend","setup","inbox","savings","expansion"]}
+                     options={["connect","recommend","setup","savings","expansion"]}
                      onChange={(v) => setTweak('skipToScreen', v)} />
 
         <TweakSection label="Look & feel" />

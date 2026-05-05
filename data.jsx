@@ -169,8 +169,7 @@ const STEPS = [
   { id: "connect", label: "Connect", n: 1 },
   { id: "recommend", label: "Suggest", n: 2 },
   { id: "deploy", label: "Automate", n: 3 },
-  { id: "approve", label: "Your inbox", n: 4 },
-  { id: "measure", label: "What we did", n: 5 },
+  { id: "measure", label: "Results", n: 4 },
 ];
 
 Object.assign(window, {
