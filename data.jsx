@@ -167,9 +167,9 @@ const EXPANSION = [
 
 const STEPS = [
   { id: "connect", label: "Connect", n: 1 },
-  { id: "recommend", label: "Suggest", n: 2 },
+  { id: "recommend", label: "Recommend", n: 2 },
   { id: "deploy", label: "Automate", n: 3 },
-  { id: "measure", label: "Results", n: 4 },
+  { id: "running", label: "Running", n: 4 },
 ];
 
 Object.assign(window, {

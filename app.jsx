@@ -18,6 +18,7 @@ function App() {
   const [connectAllTrigger, setConnectAllTrigger] = useAppState(0);
 
   const [connected, setConnected] = useAppState({});
+  const [deployed, setDeployed] = useAppState([]);  // ids of deployed workflows
 
   // Apply theme tweaks live
   useAppEffect(() => {
@@ -54,13 +55,13 @@ function App() {
   const stepFromScreen = {
     connect: "connect",
     recommend: "recommend", setup: "deploy",
-    savings: "measure", expansion: "measure",
+    running: "running",
   };
 
   function jump(stepId) {
     const target = {
       connect: "connect", discover: "connect", recommend: "recommend",
-      deploy: "setup", measure: "savings",
+      deploy: "setup", running: "running",
     }[stepId];
     setScreen(target);
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -68,6 +69,7 @@ function App() {
 
   function onDeploy() {
     done("deploy");
+    setDeployed(d => d.includes("rent") ? d : [...d, "rent"]);
     // Open WhatsApp demo in a popup window
     const w = 440, h = 720;
     const left = window.screenX + window.outerWidth - w - 40;
@@ -78,23 +80,22 @@ function App() {
       `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`
     );
     setWaPopup(popup);
-    setScreen("savings");
+    setScreen("running");
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   let view;
   switch (screen) {
     case "connect": view = <Connect onDone={() => go("recommend", "connect")} connectAllTrigger={connectAllTrigger} autoAdvance={t.autoAdvance} connected={connected} setConnected={setConnected} />; break;
-    case "recommend": view = <Recommend onSetup={() => go("setup", "recommend")} />; break;
+    case "recommend": view = <Recommend onSetup={() => go("setup", "recommend")} deployed={deployed} />; break;
     case "setup": view = <Setup onReady={onDeploy} />; break;
-    case "savings": view = <Savings onNext={() => go("expansion")} />; break;
-    case "expansion": view = <Expansion onRestart={() => { setCompleted([]); setConnected({}); go("connect"); }} />; break;
+    case "running": view = <Running onBackToRecommend={() => go("recommend")} />; break;
     default: view = null;
   }
 
   return (
     <div className="app">
-      <Sidebar current={stepFromScreen[screen]} onJump={jump} completed={completed} />
+      <Sidebar current={stepFromScreen[screen]} onJump={jump} completed={completed} pendingCount={completed.includes("connect") ? FOUND_LOOPS.length - deployed.length : 0} />
       <main className="main" key={screen}>{view}</main>
 
       <TweaksPanel title="Tweaks">
@@ -104,7 +105,7 @@ function App() {
         <TweakToggle label="Auto-continue after connect" value={t.autoAdvance}
                      onChange={(v) => setTweak('autoAdvance', v)} />
         <TweakSelect label="Jump to screen" value={t.skipToScreen}
-                     options={["connect","recommend","setup","savings","expansion"]}
+                     options={["connect","recommend","setup","running"]}
                      onChange={(v) => setTweak('skipToScreen', v)} />
 
         <TweakSection label="Look & feel" />

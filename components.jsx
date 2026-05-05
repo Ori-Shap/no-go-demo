@@ -11,7 +11,7 @@ function Arrow() {
 }
 
 /* ===== Sidebar ===== */
-function Sidebar({ current, onJump, completed }) {
+function Sidebar({ current, onJump, completed, pendingCount }) {
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -27,10 +27,14 @@ function Sidebar({ current, onJump, completed }) {
           const isDone = completed.includes(s.id) && current !== s.id;
           const isActive = current === s.id;
           const cls = "step" + (isActive ? " active" : "") + (isDone ? " done" : "");
+          const badge = s.id === "recommend" && pendingCount > 0 ? pendingCount : null;
           return (
             <div key={s.id} className={cls} onClick={() => onJump(s.id)}>
               <div className="num"><span>{s.n}</span></div>
-              <div>{s.label}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {s.label}
+                {badge && <span className="sidebar-badge">{badge}</span>}
+              </div>
               <div className="tag">{isActive ? "Now" : ""}</div>
             </div>
           );
@@ -306,10 +310,11 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
 }
 
 /* ===== 3. Recommend ===== */
-function Recommend({ onSetup }) {
+function Recommend({ onSetup, deployed }) {
+  const available = FOUND_LOOPS.filter(l => !deployed.includes(l.id));
   const [selected, setSelected] = useState(() => {
     const init = {};
-    FOUND_LOOPS.forEach(l => { init[l.id] = !!l.primary; });
+    available.forEach(l => { init[l.id] = !!l.primary; });
     return init;
   });
   const [expanded, setExpanded] = useState(null);
@@ -330,7 +335,7 @@ function Recommend({ onSetup }) {
       </p>
 
       <div className="suggest-list">
-        {FOUND_LOOPS.map(l => {
+        {available.map(l => {
           const isSel = !!selected[l.id];
           const isExp = expanded === l.id;
           return (
@@ -828,100 +833,76 @@ function CountUp({ to, prefix = "", suffix = "", decimals = 0, dur = 1100 }) {
   return <span className="tabular">{prefix}{formatted}{suffix}</span>;
 }
 
-function Savings({ onNext }) {
+/* ===== Running ===== */
+function Running({ onBackToRecommend }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  // Simulate time passing — stats count up
+  useEffect(() => {
+    const t = setTimeout(() => { if (elapsed < 30) setElapsed(e => e + 1); }, 100);
+    return () => clearTimeout(t);
+  }, [elapsed]);
+
+  const progress = Math.min(1, elapsed / 30);
+
   return (
     <div className="fade-in">
-      <div className="greeting">Last month with No-Go AI</div>
-      <h1 className="display">Look at <strong>what we did together.</strong></h1>
+      <div className="greeting">Workflows are live</div>
+      <h1 className="display">Your agents are <strong>running.</strong></h1>
       <p className="lede">
-        This is the work No-Go AI helped you finish in November. No charts, no jargon — just what
-        actually got done.
+        Deployed workflows are active. You'll get approvals on WhatsApp.
       </p>
 
-      <div className="savings-hero">
-        <div className="lbl">{SAVINGS.bigLabel}</div>
-        <div className="big">$<CountUp to={SAVINGS.big} />{SAVINGS.bigUnit}</div>
-        <div className="desc">{SAVINGS.desc}</div>
-      </div>
-
-      <div className="savings-grid">
-        {SAVINGS.tiles.map((t, i) => (
-          <div className="sg-card" key={i}>
-            <div className="k">{t.k}</div>
-            <div className="v">
-              {t.prefix && t.prefix}
-              <CountUp to={t.v} decimals={t.suffix === "h" || t.suffix === " days" || t.prefix === "$" ? 1 : 0} suffix={t.suffix || ""} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="card card-pad-lg" style={{ marginTop: 20, background: "var(--mint-soft)", border: "1px solid var(--mint)" }}>
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-          <div style={{ fontSize: 24 }}>☕</div>
+      {/* Active workflow card */}
+      <div className="running-card live" style={{ marginTop: 28 }}>
+        <div className="running-card-header">
           <div>
-            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 4 }}>That's almost a full work week back.</div>
-            <div style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.55 }}>
-              31 hours a month is the kind of time you can actually feel — for the work that
-              really needs your judgment, or for going home on time.
-            </div>
+            <div className="running-card-title">Chasing late rent</div>
+            <div className="running-card-sub">Deployed just now · runs every weekday at 8am</div>
+          </div>
+          <span className="pill go"><span className="dot" />Live</span>
+        </div>
+        <div className="running-stats">
+          <div className="running-stat">
+            <div className="running-stat-v tabular"><CountUp to={Math.round(148 * progress)} /></div>
+            <div className="running-stat-k">reminders sent</div>
+          </div>
+          <div className="running-stat">
+            <div className="running-stat-v tabular"><CountUp to={Math.round(31 * progress)} />h</div>
+            <div className="running-stat-k">hours saved</div>
+          </div>
+          <div className="running-stat">
+            <div className="running-stat-v tabular" style={{ color: "var(--go)" }}>$<CountUp to={Math.round(92 * progress)} />k</div>
+            <div className="running-stat-k">collected</div>
+          </div>
+          <div className="running-stat">
+            <div className="running-stat-v tabular">6.1x</div>
+            <div className="running-stat-k">ROI</div>
           </div>
         </div>
       </div>
 
-      <div className="cta">
-        <div className="text"><strong>One down, more to go.</strong> Want to see what's next?</div>
-        <button className="btn lg" onClick={onNext}>What's next <Arrow /></button>
-      </div>
-    </div>
-  );
-}
-
-/* ===== 7. Expansion ===== */
-function Expansion({ onRestart }) {
-  return (
-    <div className="fade-in">
-      <div className="greeting">The road ahead</div>
-      <h1 className="display">One helper running. <strong>More coming.</strong></h1>
-      <p className="lede">
-        Now that late-rent reminders are working, No-Go AI can take on more — when you're ready,
-        and only when it's safe.
-      </p>
-
-      <div className="exp-list">
-        {EXPANSION.map((e, i) => (
-          <div className={"exp-row" + (e.state === "live" ? " live" : "")} key={e.id}>
-            <div className="num">{e.state === "live" ? "✓" : i + 1}</div>
-            <div>
-              <div className="lbl">{e.label}</div>
-              <div className="sub">{e.sub}</div>
-            </div>
-            <div className="right">
-              {e.state === "live" && <span className="pill go"><span className="dot" />Running</span>}
-              {e.state === "next" && <span className="pill primary"><span className="dot" />Up next</span>}
-              {e.state === "queue" && <span className="pill"><span className="dot" />Later</span>}
-            </div>
-          </div>
-        ))}
+      {/* Back to recommend */}
+      <div className="cta-center" style={{ marginTop: 32 }}>
+        <button className="btn lg" onClick={onBackToRecommend}>
+          Automate more <Arrow />
+        </button>
       </div>
 
+      {/* Closing */}
       <div className="card card-pad-lg" style={{ marginTop: 32, background: "var(--ink)", color: "white", border: 0 }}>
-        <div className="serif" style={{ fontSize: 32, lineHeight: 1.2, letterSpacing: "-0.015em" }}>
-          No-Go AI is the helper that learns your work, asks before it acts, and proves it saved you time.
+        <div style={{ fontSize: 24, lineHeight: 1.3, letterSpacing: "-0.015em", fontWeight: 300 }}>
+          No-Go AI learns your work, asks before it acts, and proves it saved you time.
         </div>
-        <div style={{ marginTop: 16, fontSize: 15, color: "oklch(82% 0.02 240)", maxWidth: "60ch" }}>
+        <div style={{ marginTop: 12, fontSize: 15, fontWeight: 300, color: "oklch(82% 0.02 240)" }}>
           We don't sell AI. We sell time back to you and your team.
         </div>
       </div>
 
-      <div className="cta">
-        <div className="text"><strong>End of the tour.</strong> You can replay any step from the side menu.</div>
-        <button className="btn ghost lg" onClick={onRestart}>Start over</button>
-      </div>
     </div>
   );
 }
 
 Object.assign(window, {
-  Sidebar, Connect, Recommend, Setup, Inbox, Savings, Expansion,
+  Sidebar, Connect, Recommend, Setup, Running,
 });
