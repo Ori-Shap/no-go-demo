@@ -284,6 +284,10 @@ h1.display strong { font-weight: 500; }
   gap: 6px;
 }
 .connector:hover { border-color: var(--rule-2); }
+.connector.selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
 .connector.connected {
   border-color: var(--mint);
   background: var(--mint-soft);
@@ -301,32 +305,12 @@ h1.display strong { font-weight: 500; }
 }
 .connector.connected .ic { background: transparent; }
 .connector .label { font-size: 13px; font-weight: 600; }
-.connector .right { margin-top: auto; }
-.connector .rec-pill {
-  position: absolute;
-  top: 8px; left: 8px;
-  font-size: 10px; height: 18px; padding: 0 7px;
-}
-.connector .btn { height: 30px; font-size: 12px; padding: 0 14px; border-radius: 8px; }
-.connector .btn.ghost.sm { height: 26px; font-size: 11px; padding: 0 8px; }
+.connector .right { margin-top: auto; min-height: 16px; }
 
-/* Connected apps bar */
-.connected-bar {
-  background: var(--paper);
-  border: 1px solid var(--mint);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-.connected-bar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 16px;
-}
-.connected-icons-row {
+/* Connected apps row */
+.connected-row {
   display: flex;
   gap: 12px;
-  padding: 8px 16px 14px;
   flex-wrap: wrap;
 }
 .connected-icon-item {
@@ -354,6 +338,14 @@ h1.display strong { font-weight: 500; }
 .disconnect-btn:hover {
   color: var(--ink);
   border-color: var(--ink-3);
+}
+
+/* Connector divider */
+.connector-divider {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--ink-3);
+  padding: 4px 0;
 }
 
 /* Info tooltip */
@@ -595,6 +587,51 @@ h1.display strong { font-weight: 500; }
 .rec-item:hover { background: var(--bg-2); }
 .rec-item.selected:hover { background: var(--primary-soft); }
 .sel-check { display: grid; place-items: center; }
+
+/* ===== Suggest list ===== */
+.suggest-list {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 28px;
+}
+.suggest-item {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms;
+}
+.suggest-item:hover { border-color: var(--rule-2); }
+.suggest-item.selected { border-color: var(--primary); background: var(--primary-soft); }
+.suggest-top {
+  display: grid;
+  grid-template-columns: 24px 1fr 20px;
+  gap: 12px;
+  align-items: center;
+}
+.suggest-title {
+  font-family: var(--serif);
+  font-size: 17px; font-weight: 400;
+  display: flex; align-items: center;
+  letter-spacing: -0.01em;
+}
+.suggest-title .pill { font-size: 11px; height: 20px; padding: 0 8px; }
+.suggest-stats {
+  display: flex; gap: 16px;
+  font-size: 13px; color: var(--ink-3);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.suggest-arrow {
+  font-size: 12px; color: var(--ink-3);
+  transition: transform 200ms;
+}
+.suggest-detail {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  display: flex; flex-direction: column; gap: 10px;
+}
 
 /* ===== Approval inbox / Chat ===== */
 .chat {

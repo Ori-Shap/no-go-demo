@@ -32,17 +32,32 @@ const SCAN_TARGETS = [
 ];
 
 const FOUND_LOOPS = [
-  { id: "rent", emoji: "💰", title: "Chasing late rent", count: "94 times last month", readiness: "go", primary: true },
-  { id: "vendor", emoji: "🔧", title: "Following up with vendors", count: "63 times last month", readiness: "wait" },
-  { id: "lease", emoji: "📝", title: "Lease renewals & paperwork", count: "38 times last month", readiness: "wait" },
-  { id: "complaint", emoji: "🗣️", title: "Tenant complaints", count: "57 times last month", readiness: "no" },
-];
-
-const RECOMMEND_REASONS = [
-  "It happens almost every day, so you'll feel the time back right away",
-  "It's mostly the same email each time — easy and safe to draft",
-  "If something looks unusual (like a payment plan), No-Go AI will ask you first",
-  "Nothing gets sent until you click 'Send'",
+  { id: "rent", emoji: "💰", title: "Chasing late rent", count: "94×/month", readiness: "go", primary: true,
+    hours: "~22 hrs/month", revenue: "$5.6k/month",
+    reasons: [
+      "It happens almost every day — you'll feel the time back right away",
+      "It's mostly the same email each time — easy and safe to draft",
+      "If something looks unusual (like a payment plan), No-Go AI will ask you first",
+      "Nothing gets sent until you click 'Send'",
+    ] },
+  { id: "vendor", emoji: "🔧", title: "Following up with vendors", count: "63×/month", readiness: "wait",
+    hours: "~14 hrs/month", revenue: "$3.2k/month",
+    reasons: [
+      "Vendor follow-ups are repetitive but some need custom terms",
+      "We need to learn your vendor relationships before automating",
+    ] },
+  { id: "lease", emoji: "📝", title: "Lease renewals & paperwork", count: "38×/month", readiness: "wait",
+    hours: "~10 hrs/month", revenue: "$1.8k/month",
+    reasons: [
+      "Lease docs vary a lot — we need more examples to draft safely",
+      "Legal review is usually involved, so full automation isn't safe yet",
+    ] },
+  { id: "complaint", emoji: "🗣️", title: "Tenant complaints", count: "57×/month", readiness: "no",
+    hours: "~18 hrs/month", revenue: "—",
+    reasons: [
+      "Complaints are sensitive — a wrong tone can escalate fast",
+      "Each one needs human judgment; not safe to automate yet",
+    ] },
 ];
 
 const HOW_IT_WORKS = [

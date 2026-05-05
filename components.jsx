@@ -50,36 +50,28 @@ function Sidebar({ current, onJump, completed }) {
 
 /* ===== 1. Connect (with inline scan) ===== */
 function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnected }) {
-  const [authing, setAuthing] = useState(null);
+  const [selected, setSelected] = useState({});
+  const [showConfirm, setShowConfirm] = useState(false);
   const [phase, setPhase] = useState("connect"); // "connect" | "scanning" | "scanned"
   const [progress, setProgress] = useState(0);
   const [scanDone, setScanDone] = useState(false);
-  const [showConnected, setShowConnected] = useState(false);
 
   const required = CONNECTOR_CATALOG.filter(c => c.recommended).map(c => c.id);
   const reqDone = required.filter(id => connected[id]).length;
   const totalConnected = Object.values(connected).filter(v => v === true).length;
   const canLookAround = reqDone >= 3;
-
-  const [connectAllModal, setConnectAllModal] = useState(false);
-
-  function connectAll() {
-    const unconnected = CONNECTOR_CATALOG.filter(c => connected[c.id] !== true);
-    if (unconnected.length === 0) return;
-    setConnectAllModal(true);
-  }
-
-  function confirmAll() {
-    setConnectAllModal(false);
-    CONNECTOR_CATALOG.forEach((c, i) => {
-      if (connected[c.id] === true) return;
-      setTimeout(() => setConnected(s => ({ ...s, [c.id]: "loading" })), i * 120);
-      setTimeout(() => setConnected(s => ({ ...s, [c.id]: true })), i * 120 + 600);
-    });
-  }
+  const selectedCount = Object.values(selected).filter(Boolean).length;
 
   // Tweak-driven trigger
-  useEffect(() => { if (connectAllTrigger) connectAll(); }, [connectAllTrigger]);
+  useEffect(() => {
+    if (connectAllTrigger) {
+      CONNECTOR_CATALOG.forEach((c, i) => {
+        if (connected[c.id] === true) return;
+        setTimeout(() => setConnected(s => ({ ...s, [c.id]: "loading" })), i * 120);
+        setTimeout(() => setConnected(s => ({ ...s, [c.id]: true })), i * 120 + 600);
+      });
+    }
+  }, [connectAllTrigger]);
 
   useEffect(() => {
     if (!autoAdvance) return;
@@ -107,106 +99,116 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
     setPhase("scanning");
   }
 
-  function start(c) {
-    if (connected[c.id]) setConnected(s => ({ ...s, [c.id]: false }));
-    else setAuthing(c);
+  function toggleSelect(c) {
+    setSelected(s => ({ ...s, [c.id]: !s[c.id] }));
   }
-  function confirm() {
-    const c = authing;
-    setAuthing(null);
-    setConnected(s => ({ ...s, [c.id]: "loading" }));
-    setTimeout(() => setConnected(s => ({ ...s, [c.id]: true })), 800);
+
+  function disconnect(c) {
+    setConnected(s => ({ ...s, [c.id]: false }));
+  }
+
+  function confirmConnect() {
+    setShowConfirm(false);
+    const toConnect = CONNECTOR_CATALOG.filter(c => selected[c.id]);
+    toConnect.forEach((c, i) => {
+      setTimeout(() => setConnected(s => ({ ...s, [c.id]: "loading" })), i * 120);
+      setTimeout(() => setConnected(s => ({ ...s, [c.id]: true })), i * 120 + 600);
+    });
+    setSelected({});
   }
 
   const total = SCAN_TARGETS.reduce((s, t) => s + t.count, 0);
   const scanned = Math.round(total * progress);
   const found = Math.min(4, Math.floor(progress * 5));
 
+  const recommended = CONNECTOR_CATALOG.filter(c => c.recommended);
+  const others = CONNECTOR_CATALOG.filter(c => !c.recommended);
+  const unconnectedRec = recommended.filter(c => connected[c.id] !== true);
+  const unconnectedOther = others.filter(c => connected[c.id] !== true);
+
   return (
     <div className="fade-in">
       <div className="greeting">Hi Abigail, let's get you set up</div>
-      <h1 className="display"><strong>Connect</strong> the apps where your work lives.</h1>
+      <h1 className="display"><strong>Connect</strong> your apps.</h1>
       <p className="lede">
-        Pick the apps you use every day. No-Go AI will read them so it can help — but it won't
-        change anything or send anything without asking you first.
+        Pick the apps you use. Read-only — No-Go AI won't send or change anything.
       </p>
 
-      <div className="connect-summary">
-        <div className="cs-card">
-          <div className="k">Connected</div>
-          <div className="v tabular">{totalConnected}<small>/ 6</small></div>
-        </div>
-        <div className="cs-card">
-          <div className="k">Recommended apps</div>
-          <div className="v tabular">{reqDone}<small>/ 4 (need 3)</small></div>
-        </div>
-        <div className="cs-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <div className="k">Quick option</div>
-          <button
-            className="btn sm"
-            onClick={connectAll}
-            disabled={totalConnected === CONNECTOR_CATALOG.length || phase !== "connect"}
-            style={{ alignSelf: "flex-start", marginTop: 8 }}
-          >
-            {totalConnected === CONNECTOR_CATALOG.length ? "All connected ✓" : "Connect all apps"}
-          </button>
-        </div>
-      </div>
-
-      {/* Connected apps bar */}
+      {/* Connected apps — always visible as icon row */}
       {totalConnected > 0 && (
-        <div className="connected-bar" style={{ marginTop: 20 }}>
-          <div className="connected-bar-header" onClick={() => setShowConnected(s => !s)} style={{ cursor: "pointer" }}>
-            <span style={{ fontSize: 13, color: "var(--ink-2)" }}>
-              {totalConnected} connected
-            </span>
-            <span style={{ fontSize: 12, color: "var(--ink-3)" }}>{showConnected ? "▲ Hide" : "▼ Show"}</span>
-          </div>
-          {showConnected && (
-            <div className="connected-icons-row">
-              {CONNECTOR_CATALOG.filter(c => connected[c.id] === true).map(c => (
-                <div className="connected-icon-item" key={c.id}>
-                  <img src={c.icon} alt={c.label} title={c.label} />
-                  {phase === "connect" && (
-                    <button className="disconnect-btn" onClick={() => start(c)} title="Disconnect">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              ))}
+        <div className="connected-row" style={{ marginTop: 20 }}>
+          {CONNECTOR_CATALOG.filter(c => connected[c.id] === true).map(c => (
+            <div className="connected-icon-item" key={c.id}>
+              <img src={c.icon} alt={c.label} title={c.label} />
+              {phase === "connect" && (
+                <button className="disconnect-btn" onClick={() => disconnect(c)} title="Disconnect">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
             </div>
-          )}
+          ))}
         </div>
       )}
 
-      <div className="connector-list">
-        {CONNECTOR_CATALOG.filter(c => connected[c.id] !== true).map(c => {
-          const state = connected[c.id];
-          const isLoading = state === "loading";
-          return (
-            <div className="connector" key={c.id}>
-              {c.recommended && <span className="pill go rec-pill"><span className="dot" />Rec</span>}
-              <div className="info-trigger">
-                i
-                <div className="info-tooltip">{c.desc}</div>
+      {/* Unconnected apps grid — tap to select, then connect */}
+      {(unconnectedRec.length > 0 || unconnectedOther.length > 0) && (
+        <div className="connector-list">
+          {unconnectedRec.map(c => {
+            const isLoading = connected[c.id] === "loading";
+            const isSel = !!selected[c.id];
+            return (
+              <div className={"connector" + (isSel ? " selected" : "")} key={c.id}
+                   onClick={() => !isLoading && phase === "connect" && toggleSelect(c)}
+                   style={{ cursor: phase === "connect" ? "pointer" : "default" }}>
+                <div className="ic"><img src={c.icon} alt={c.label} /></div>
+                <span className="label">{c.label}</span>
+                <div className="right">
+                  {isLoading ? <span className="spinner" /> : isSel && (
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <rect width="18" height="18" rx="5" fill="var(--primary)" />
+                      <path d="M5 9l3 3 5-6" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
               </div>
-              <div className="ic"><img src={c.icon} alt={c.label} /></div>
-              <span className="label">{c.label}</span>
-              <div className="right">
-                {isLoading ? (
-                  <span className="row" style={{ gap: 8, justifyContent: "center" }}>
-                    <span className="spinner" /> <span style={{ fontSize: 14, color: "var(--ink-3)" }}>Connecting…</span>
-                  </span>
-                ) : phase === "connect" ? (
-                  <button className="btn" onClick={() => start(c)}>Connect</button>
-                ) : null}
+            );
+          })}
+          {unconnectedOther.length > 0 && unconnectedRec.length > 0 && (
+            <div className="connector-divider">Others</div>
+          )}
+          {unconnectedOther.map(c => {
+            const isLoading = connected[c.id] === "loading";
+            const isSel = !!selected[c.id];
+            return (
+              <div className={"connector" + (isSel ? " selected" : "")} key={c.id}
+                   onClick={() => !isLoading && phase === "connect" && toggleSelect(c)}
+                   style={{ cursor: phase === "connect" ? "pointer" : "default" }}>
+                <div className="ic"><img src={c.icon} alt={c.label} /></div>
+                <span className="label">{c.label}</span>
+                <div className="right">
+                  {isLoading ? <span className="spinner" /> : isSel && (
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <rect width="18" height="18" rx="5" fill="var(--primary)" />
+                      <path d="M5 9l3 3 5-6" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Connect selected button */}
+      {phase === "connect" && selectedCount > 0 && (
+        <div style={{ textAlign: "center", marginTop: 20 }}>
+          <button className="btn" onClick={() => setShowConfirm(true)}>
+            Connect {selectedCount} app{selectedCount === 1 ? "" : "s"}
+          </button>
+        </div>
+      )}
 
       {/* Scan section — appears inline after "Look around" is clicked */}
       {phase !== "connect" && (
@@ -261,66 +263,29 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
         </div>
       )}
 
-      {authing && (
-        <div className="modal-bg" onClick={() => setAuthing(null)}>
+      {showConfirm && (
+        <div className="modal-bg" onClick={() => setShowConfirm(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="vendor-ic"><img src={authing.icon} alt={authing.label} style={{ width: 40, height: 40, objectFit: "contain" }} /></div>
-            <h3>Connect {authing.label}?</h3>
-            <p>You'll be sent to {authing.label} to log in. No-Go AI will only be able to:</p>
-            <div className="scope-list">
-              {(authing.scopes || []).map((s, i) => (
-                <div className="scope-row" key={i}><div className="ic" /><div>{s}</div></div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              {CONNECTOR_CATALOG.filter(c => selected[c.id]).map(c => (
+                <img key={c.id} src={c.icon} alt={c.label} style={{ width: 36, height: 36, objectFit: "contain" }} />
               ))}
             </div>
-            <p style={{ fontSize: 13, color: "var(--ink-3)" }}>You can disconnect anytime in Settings.</p>
-            <div className="actions">
-              <button className="btn ghost" onClick={() => setAuthing(null)}>Not now</button>
-              <button className="btn" onClick={confirm}>Yes, connect</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {connectAllModal && (
-        <div className="modal-bg" onClick={() => setConnectAllModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="vendor-ic" style={{ display: "flex", gap: 4 }}>
-              {CONNECTOR_CATALOG.filter(c => connected[c.id] !== true).slice(0, 4).map(c => (
-                <img key={c.id} src={c.icon} alt={c.label} style={{ width: 28, height: 28, objectFit: "contain" }} />
-              ))}
-            </div>
-            <h3>Connect all apps?</h3>
-            <p>No-Go AI will connect to all remaining apps. For each one, it will only be able to read — no sending, no editing, no deleting.</p>
-            <div className="scope-list">
-              <div className="scope-row"><div className="ic" /><div>Read-only access to each app</div></div>
-              <div className="scope-row"><div className="ic" /><div>No actions taken without your approval</div></div>
-              <div className="scope-row"><div className="ic" /><div>Disconnect any app anytime in Settings</div></div>
-            </div>
-            <div className="actions">
-              <button className="btn ghost" onClick={() => setConnectAllModal(false)}>Not now</button>
-              <button className="btn" onClick={confirmAll}>Yes, connect all</button>
+            <h3>Connect {selectedCount} app{selectedCount === 1 ? "" : "s"}?</h3>
+            <p>Read-only access — no sending, no changes. You can disconnect anytime.</p>
+            <div className="actions" style={{ marginTop: 20 }}>
+              <button className="btn ghost" onClick={() => setShowConfirm(false)}>Not now</button>
+              <button className="btn" onClick={confirmConnect}>Connect</button>
             </div>
           </div>
         </div>
       )}
 
       {phase === "connect" ? (
-        canLookAround ? (
+        canLookAround && (
           <div className="cta-center">
-            <div className="text" style={{ textAlign: "center", marginBottom: 16 }}>
-              <strong>Looking good!</strong> Let's see what No-Go AI finds.
-            </div>
             <button className="btn lg" onClick={startScan}>
-              Look around <Arrow />
-            </button>
-          </div>
-        ) : (
-          <div className="cta">
-            <div className="text">
-              Connect at least <strong>three</strong> of the recommended apps to keep going.
-            </div>
-            <button className="btn lg" disabled>
-              Look around <Arrow />
+              Find repetitive work <Arrow />
             </button>
           </div>
         )
@@ -342,14 +307,15 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
 
 /* ===== 3. Recommend ===== */
 function Recommend({ onSetup }) {
-  const [whyOpen, setWhyOpen] = useState(false);
   const [selected, setSelected] = useState(() => {
     const init = {};
     FOUND_LOOPS.forEach(l => { init[l.id] = !!l.primary; });
     return init;
   });
+  const [expanded, setExpanded] = useState(null);
 
-  function toggle(id) {
+  function toggle(id, e) {
+    e.stopPropagation();
     setSelected(s => ({ ...s, [id]: !s[id] }));
   }
 
@@ -357,108 +323,66 @@ function Recommend({ onSetup }) {
 
   return (
     <div className="fade-in">
-      <div className="greeting">Here's what No-Go AI thinks</div>
-      <h1 className="display">Choose what to <strong>hand over.</strong></h1>
+      <div className="greeting">Here's what we found</div>
+      <h1 className="display">Pick what to <strong>hand over.</strong></h1>
       <p className="lede">
-        We found repetitive work we can help with. Pick what you'd like No-Go AI to handle —
-        you can always change your mind later.
+        We scanned 90 days of data. Tap to select, tap a row to see why.
       </p>
 
-      <div className="rec-headline">
-        <div className="label">
-          <span className="pill primary"><span className="dot" />Best place to start</span>
-          <span className="info-trigger" style={{ position: "relative", top: 0, right: 0, marginLeft: 8 }}>
-            i
-            <div className="info-tooltip" style={{ top: 28, left: -100, right: "auto" }}>
-              We saw 94 late-rent emails last month. They're almost the same every time — friendly
-              reminder, then attach the balance, then check back in a week.
-            </div>
-          </span>
-        </div>
-        <h2>Chasing late rent</h2>
-
-        <div className="rec-stats">
-          <div className="rec-stat">
-            <div className="k">How often it happens</div>
-            <div className="v tabular">94<small> times/month</small></div>
-          </div>
-          <div className="rec-stat">
-            <div className="k">Time you'd get back</div>
-            <div className="v tabular">~22<small> hrs/month</small></div>
-          </div>
-          <div className="rec-stat">
-            <div className="k">Likely collected faster</div>
-            <div className="v tabular">$5.6<small>k / month</small></div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="collapsible-header"
-        onClick={() => setWhyOpen(o => !o)}
-        style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginTop: 36, marginBottom: 8 }}
-      >
-        <h3 className="serif" style={{ fontWeight: 400, fontSize: 26, margin: 0, letterSpacing: "-0.015em" }}>
-          Why this one first?
-        </h3>
-        <span style={{ fontSize: 14, color: "var(--ink-3)", transition: "transform 200ms", transform: whyOpen ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
-      </div>
-      {whyOpen && (
-        <div className="checks-friendly fade-in">
-          {RECOMMEND_REASONS.map((r, i) => (
-            <div className="cf-row" key={i}>
-              <div className="ic" />
-              <div>{r}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="rec-list" style={{ marginTop: 28 }}>
-        <div className="rec-list-head">
-          {selectedCount} selected · click to select or deselect
-        </div>
-        {FOUND_LOOPS.map(l => (
-          <div
-            className={"rec-item " + l.readiness + (selected[l.id] ? " selected" : "")}
-            key={l.id}
-            onClick={() => toggle(l.id)}
-            style={{ cursor: "pointer" }}
-          >
-            <div className="sel-check">
-              {selected[l.id] ? (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <rect width="20" height="20" rx="6" fill="var(--primary)" />
-                  <path d="M6 10l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <rect x="0.5" y="0.5" width="19" height="19" rx="5.5" stroke="var(--rule-2)" />
-                </svg>
+      <div className="suggest-list">
+        {FOUND_LOOPS.map(l => {
+          const isSel = !!selected[l.id];
+          const isExp = expanded === l.id;
+          return (
+            <div key={l.id} className={"suggest-item" + (isSel ? " selected" : "")} onClick={() => setExpanded(isExp ? null : l.id)}>
+              <div className="suggest-top">
+                <div className="sel-check" onClick={(e) => toggle(l.id, e)}>
+                  {isSel ? (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <rect width="20" height="20" rx="6" fill="var(--primary)" />
+                      <path d="M6 10l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <rect x="0.5" y="0.5" width="19" height="19" rx="5.5" stroke="var(--rule-2)" />
+                    </svg>
+                  )}
+                </div>
+                <div className="suggest-info">
+                  <div className="suggest-title">
+                    {l.title}
+                    {l.primary && <span className="pill primary" style={{ marginLeft: 8 }}><span className="dot" />Recommended</span>}
+                  </div>
+                  <div className="suggest-stats">
+                    <span>{l.count}</span>
+                    <span>{l.hours}</span>
+                    {l.revenue !== "—" && <span>{l.revenue}</span>}
+                  </div>
+                </div>
+                <span className="suggest-arrow" style={{ transform: isExp ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
+              </div>
+              {isExp && (
+                <div className="suggest-detail fade-in">
+                  {l.reasons.map((r, i) => (
+                    <div className="cf-row" key={i}>
+                      <div className="ic" />
+                      <div>{r}</div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-            <div className="badge">{l.emoji}</div>
-            <div>
-              <div className="title">{l.title}</div>
-              <div className="sub">{l.count}</div>
-            </div>
-            <div>
-              {l.primary && <span className="pill primary"><span className="dot" />Recommended</span>}
-              {l.readiness === "wait" && <span className="pill wait"><span className="dot" />Maybe later</span>}
-              {l.readiness === "no" && <span className="pill"><span className="dot" />Not safe yet</span>}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="cta-center">
-        <div className="text" style={{ textAlign: "center", marginBottom: 16 }}>
-          <strong>You're always in control.</strong> Nothing gets sent without you clicking "Send."
+      {selectedCount > 0 && (
+        <div className="cta-center">
+          <button className="btn lg" onClick={onSetup}>
+            Hand over {selectedCount} {selectedCount === 1 ? "task" : "tasks"} <Arrow />
+          </button>
         </div>
-        <button className="btn lg" disabled={selectedCount === 0} onClick={onSetup}>
-          Hand over {selectedCount} {selectedCount === 1 ? "task" : "tasks"} to No-Go <Arrow />
-        </button>
-      </div>
+      )}
     </div>
   );
 }
