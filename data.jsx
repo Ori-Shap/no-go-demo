@@ -1,12 +1,18 @@
 // Friendlier mock data for "Abigail" version
 
 const CONNECTOR_CATALOG = [
-  { id: "gmail", label: "Gmail", icon: "icons/gmail.png", desc: "Where most of the day's work happens.", recommended: true },
-  { id: "qb", label: "QuickBooks", icon: "icons/quickbooks.png", desc: "Who paid, who hasn't, what's due.", recommended: true },
-  { id: "appfolio", label: "AppFolio", icon: "icons/appfolio.png", desc: "Tenants, leases, and balances.", recommended: true },
-  { id: "drive", label: "Google Drive", icon: "icons/drive.png", desc: "Invoices and lease documents.", recommended: true },
-  { id: "outlook", label: "Outlook", icon: "icons/outlook.png", desc: "If you use Microsoft instead of Gmail." },
-  { id: "stripe", label: "Stripe", icon: "icons/stripe.png", desc: "Confirms online payments." },
+  { id: "gmail", label: "Gmail", icon: "icons/gmail.png", desc: "Where most of the day's work happens.", recommended: true,
+    scopes: ["Read your emails and threads", "Search messages by sender or subject", "No sending, no deleting"] },
+  { id: "qb", label: "QuickBooks", icon: "icons/quickbooks.png", desc: "Who paid, who hasn't, what's due.", recommended: true,
+    scopes: ["Read invoices and balances", "View customer payment history", "No editing, no creating transactions"] },
+  { id: "appfolio", label: "AppFolio", icon: "icons/appfolio.png", desc: "Tenants, leases, and balances.", recommended: true,
+    scopes: ["Read tenant and lease records", "View maintenance requests", "No changes to any records"] },
+  { id: "drive", label: "Google Drive", icon: "icons/drive.png", desc: "Invoices and lease documents.", recommended: true,
+    scopes: ["Read documents and spreadsheets", "Find invoices and attachments", "No uploading, no editing files"] },
+  { id: "outlook", label: "Outlook", icon: "icons/outlook.png", desc: "If you use Microsoft instead of Gmail.",
+    scopes: ["Read your emails and calendar", "Search messages and contacts", "No sending, no deleting"] },
+  { id: "stripe", label: "Stripe", icon: "icons/stripe.png", desc: "Confirms online payments.",
+    scopes: ["Read payment records", "View transaction status", "No charges, no refunds"] },
 ];
 
 const CONNECTED_SYSTEMS = [
@@ -46,6 +52,40 @@ const HOW_IT_WORKS = [
   { kind: "human", label: "Asks you to look it over", detail: "Right here in your No-Go AI inbox. Approve, edit, or skip." },
   { kind: "step", label: "Sends after you approve", detail: "Goes out from your normal email address. Logged for the record." },
 ];
+
+// Smart replies for the workflow chat — keyword-matched
+const WORKFLOW_REPLIES = [
+  { keywords: ["tone", "soft", "gentle", "friendly", "nice"],
+    text: "Got it — I've softened the tone across all templates. First-timers now get a warmer opener, and even repeat-late messages avoid any harsh language.",
+    change: { idx: 2, label: "Drafts a warm, friendly message", detail: "Tone is always gentle — even for repeat lateness, the message stays supportive and professional." } },
+  { keywords: ["day", "wait", "delay", "time", "sooner", "later", "week"],
+    text: "Updated — I'll now wait 10 days instead of 7 before the first reminder, and space follow-ups 5 days apart instead of 3.",
+    change: { idx: 0, label: "When rent is 10+ days late", detail: "No-Go AI checks every morning at 8am. Follow-ups spaced 5 days apart." } },
+  { keywords: ["escalat", "manager", "priya", "forward", "route"],
+    text: "Added an escalation step — if there's no response after two reminders, I'll flag it for Priya automatically instead of sending a third email.",
+    change: null, add: { kind: "human", label: "Escalates to Priya after 2 tries", detail: "If no reply after two reminders, routes to your manager instead of sending more emails." } },
+  { keywords: ["skip", "ignore", "exclude", "filter", "payment plan"],
+    text: "Done — tenants on active payment plans will be automatically excluded. I'll only remind tenants with no arrangement in place.",
+    change: { idx: 1, label: "Reads history (skips payment plans)", detail: "Checks for active payment plans and excludes those tenants automatically." } },
+  { keywords: ["cc", "copy", "bcc", "notify"],
+    text: "Added — I'll BCC you on every outgoing reminder so you always have a copy in your inbox.",
+    change: { idx: 4, label: "Sends after you approve (BCC to you)", detail: "Goes from your email address. You get a BCC copy. Logged for the record." } },
+];
+
+const WORKFLOW_DEFAULT_REPLY = "Understood — I've updated the workflow with that change. Take another look at the steps below.";
+
+// Simulation results
+const SIM_RESULTS = {
+  score: 96.4,
+  total: 94,
+  passed: 91,
+  failed: 3,
+  failures: [
+    { tenant: "Unit 7C — David Park", reason: "Tenant has an open maintenance dispute. Reminder could escalate the situation.", suggestion: "Add dispute-detection to the skip list." },
+    { tenant: "Unit 2A — Sarah Chen", reason: "Lease ends in 8 days. Late rent may be intentional move-out.", suggestion: "Cross-check lease end dates before sending." },
+    { tenant: "Unit 15B — James Okafor", reason: "Tenant flagged as hardship case by property manager.", suggestion: "Exclude tenants with hardship flags." },
+  ],
+};
 
 const DRAFTS = [
   {
@@ -121,5 +161,6 @@ const STEPS = [
 Object.assign(window, {
   CONNECTOR_CATALOG, CONNECTED_SYSTEMS, SCAN_TARGETS,
   FOUND_LOOPS, RECOMMEND_REASONS, HOW_IT_WORKS,
+  WORKFLOW_REPLIES, WORKFLOW_DEFAULT_REPLY, SIM_RESULTS,
   DRAFTS, SAVINGS, EXPANSION, STEPS,
 });

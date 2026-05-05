@@ -898,6 +898,142 @@ h1.display strong { font-weight: 500; }
 .cta-center .btn.lg { height: 64px; padding: 0 36px; font-size: 19px; border-radius: 18px; }
 .cta .text strong { color: var(--ink); font-weight: 600; }
 
+/* ===== Setup grid ===== */
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 28px;
+  align-items: start;
+}
+.setup-grid .steps-friendly { margin-top: 0; }
+
+/* ===== Setup chat ===== */
+.setup-chat {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  overflow: hidden;
+}
+.setup-chat-body {
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--bg-2);
+}
+.setup-chat-input {
+  display: flex; gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+}
+.setup-chat-input input {
+  flex: 1;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+}
+.setup-chat-input input:focus { border-color: var(--primary); }
+.setup-chat-input input::placeholder { color: var(--ink-3); }
+.typing-dots { animation: pulse 1.2s ease-in-out infinite; }
+
+/* ===== Pipeline ===== */
+.pipeline-stages {
+  display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper);
+}
+.pipeline-stage {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 16px;
+  padding: 20px 24px;
+  align-items: center;
+  border-bottom: 1px solid var(--rule);
+}
+.pipeline-stage:last-child { border-bottom: 0; }
+.pipeline-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  display: grid; place-items: center;
+  font-size: 14px; font-weight: 600;
+  color: var(--ink-3);
+}
+.pipeline-stage.active .pipeline-icon {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.pipeline-stage.done .pipeline-icon {
+  background: var(--mint);
+  color: var(--ink);
+  font-weight: 700;
+}
+.pipeline-label { font-size: 16px; font-weight: 500; }
+.pipeline-desc { font-size: 13px; color: var(--ink-3); margin-top: 2px; }
+.pipeline-stage.active .pipeline-label { color: var(--primary); }
+.pipeline-stage.done .pipeline-label { color: var(--ink); }
+
+/* ===== Simulation results ===== */
+.sim-result-hero {
+  background: var(--paper);
+  border: 1px solid var(--mint);
+  border-radius: var(--radius-lg);
+  padding: 32px 36px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.sim-score {
+  font-family: var(--serif);
+  font-size: 72px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--go);
+}
+.sim-score-label {
+  font-size: 16px;
+  color: var(--ink-2);
+  margin-top: 6px;
+}
+.sim-stats {
+  display: flex; gap: 28px;
+}
+.sim-stat-v {
+  font-family: var(--serif);
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.sim-stat-k {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+
+/* Failed scenarios */
+.fail-list {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.fail-row {
+  padding: 16px 20px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--gold-soft);
+}
+.fail-tenant { font-size: 14px; font-weight: 600; }
+.fail-reason { font-size: 14px; color: var(--ink-2); margin-top: 4px; line-height: 1.5; }
+.fail-suggestion { font-size: 13px; color: var(--wait); margin-top: 6px; font-style: italic; }
+
 /* ===== Animations ===== */
 @keyframes fadeup {
   from { opacity: 0; transform: translateY(8px); }

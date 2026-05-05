@@ -61,9 +61,18 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
   const totalConnected = Object.values(connected).filter(v => v === true).length;
   const canLookAround = reqDone >= 3;
 
+  const [connectAllModal, setConnectAllModal] = useState(false);
+
   function connectAll() {
-    setAuthing(null);
+    const unconnected = CONNECTOR_CATALOG.filter(c => connected[c.id] !== true);
+    if (unconnected.length === 0) return;
+    setConnectAllModal(true);
+  }
+
+  function confirmAll() {
+    setConnectAllModal(false);
     CONNECTOR_CATALOG.forEach((c, i) => {
+      if (connected[c.id] === true) return;
       setTimeout(() => setConnected(s => ({ ...s, [c.id]: "loading" })), i * 120);
       setTimeout(() => setConnected(s => ({ ...s, [c.id]: true })), i * 120 + 600);
     });
@@ -255,18 +264,41 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
       {authing && (
         <div className="modal-bg" onClick={() => setAuthing(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="vendor-ic">{authing.emoji}</div>
+            <div className="vendor-ic"><img src={authing.icon} alt={authing.label} style={{ width: 40, height: 40, objectFit: "contain" }} /></div>
             <h3>Connect {authing.label}?</h3>
             <p>You'll be sent to {authing.label} to log in. No-Go AI will only be able to:</p>
             <div className="scope-list">
-              <div className="scope-row"><div className="ic" /><div>Read your messages and information</div></div>
-              <div className="scope-row"><div className="ic" /><div>Find documents and attachments</div></div>
-              <div className="scope-row"><div className="ic" /><div>That's it — no sending, no changing</div></div>
+              {(authing.scopes || []).map((s, i) => (
+                <div className="scope-row" key={i}><div className="ic" /><div>{s}</div></div>
+              ))}
             </div>
             <p style={{ fontSize: 13, color: "var(--ink-3)" }}>You can disconnect anytime in Settings.</p>
             <div className="actions">
               <button className="btn ghost" onClick={() => setAuthing(null)}>Not now</button>
               <button className="btn" onClick={confirm}>Yes, connect</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {connectAllModal && (
+        <div className="modal-bg" onClick={() => setConnectAllModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="vendor-ic" style={{ display: "flex", gap: 4 }}>
+              {CONNECTOR_CATALOG.filter(c => connected[c.id] !== true).slice(0, 4).map(c => (
+                <img key={c.id} src={c.icon} alt={c.label} style={{ width: 28, height: 28, objectFit: "contain" }} />
+              ))}
+            </div>
+            <h3>Connect all apps?</h3>
+            <p>No-Go AI will connect to all remaining apps. For each one, it will only be able to read — no sending, no editing, no deleting.</p>
+            <div className="scope-list">
+              <div className="scope-row"><div className="ic" /><div>Read-only access to each app</div></div>
+              <div className="scope-row"><div className="ic" /><div>No actions taken without your approval</div></div>
+              <div className="scope-row"><div className="ic" /><div>Disconnect any app anytime in Settings</div></div>
+            </div>
+            <div className="actions">
+              <button className="btn ghost" onClick={() => setConnectAllModal(false)}>Not now</button>
+              <button className="btn" onClick={confirmAll}>Yes, connect all</button>
             </div>
           </div>
         </div>
@@ -433,57 +465,227 @@ function Recommend({ onSetup }) {
 
 /* ===== 4. Setup ===== */
 function Setup({ onReady }) {
-  const [step, setStep] = useState(0);
+  const [workflow, setWorkflow] = useState(HOW_IT_WORKS.map(s => ({ ...s })));
+  const [messages, setMessages] = useState([
+    { from: "ai", text: "Here's the workflow I've built for chasing late rent. Review the steps below — if you'd like to change anything, just tell me." }
+  ]);
+  const [input, setInput] = useState("");
+  const [typing, setTyping] = useState(false);
+  const [phase, setPhase] = useState("edit"); // "edit" | "pipeline" | "results" | "deploy"
+  const [pipelineStage, setPipelineStage] = useState(0); // 0=dev, 1=test, 2=simulate
+  const [showFailures, setShowFailures] = useState(false);
+  const [expandedStep, setExpandedStep] = useState(null);
 
-  useEffect(() => {
-    if (step >= HOW_IT_WORKS.length) return;
-    const t = setTimeout(() => setStep(s => s + 1), 320);
-    return () => clearTimeout(t);
-  }, [step]);
+  const chatEndRef = React.useRef(null);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, typing]);
+
+  function sendMessage() {
+    const text = input.trim();
+    if (!text || typing) return;
+    setInput("");
+    setMessages(m => [...m, { from: "user", text }]);
+    setTyping(true);
+
+    const lower = text.toLowerCase();
+    const match = WORKFLOW_REPLIES.find(r => r.keywords.some(k => lower.includes(k)));
+
+    setTimeout(() => {
+      const reply = match ? match.text : WORKFLOW_DEFAULT_REPLY;
+      setMessages(m => [...m, { from: "ai", text: reply }]);
+      if (match) {
+        setWorkflow(wf => {
+          const next = [...wf];
+          if (match.change) {
+            next[match.change.idx] = { ...next[match.change.idx], label: match.change.label, detail: match.change.detail };
+          }
+          if (match.add) {
+            next.push(match.add);
+          }
+          return next;
+        });
+      }
+      setTyping(false);
+    }, 800 + Math.random() * 600);
+  }
+
+  function startPipeline() {
+    setPhase("pipeline");
+    setPipelineStage(0);
+    setTimeout(() => setPipelineStage(1), 1800);
+    setTimeout(() => setPipelineStage(2), 3600);
+    setTimeout(() => setPhase("results"), 5800);
+  }
+
+  const PIPELINE_STAGES = [
+    { label: "Building", desc: "Compiling workflow into executable steps…" },
+    { label: "Testing", desc: "Running unit checks on each step…" },
+    { label: "Simulating", desc: "Replaying 94 real scenarios from last month…" },
+  ];
 
   return (
     <div className="fade-in">
-      <div className="greeting">Setting up your helper</div>
-      <h1 className="display">Here's <strong>how it'll work.</strong></h1>
+      <div className="greeting">Setting up your workflow</div>
+      <h1 className="display">Review and <strong>refine.</strong></h1>
       <p className="lede">
-        No-Go AI will follow these steps every weekday morning. You stay in charge — step 4 is
-        where you say yes or no.
+        No-Go AI built a workflow based on your data. Tweak it with the chat below, then approve to run it through safety checks.
       </p>
 
-      <div className="steps-friendly">
-        {HOW_IT_WORKS.slice(0, step || HOW_IT_WORKS.length).map((s, i) => (
-          <div className="sf-row" key={i}>
-            <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
+      {/* Workflow + Chat side by side */}
+      {phase === "edit" ? (
+        <div className="setup-grid">
+          <div className="steps-friendly">
+            {workflow.map((s, i) => (
+              <div className="sf-row fade-in" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
+                <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
+                <div>
+                  <div className="lbl">{s.label}</div>
+                  {expandedStep === i && <div className="det fade-in">{s.detail}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="setup-chat">
+            <div className="setup-chat-body">
+              {messages.map((m, i) => (
+                <div key={i} className={"bubble " + (m.from === "ai" ? "ai" : "draft")} style={m.from === "user" ? { alignSelf: "flex-end" } : {}}>
+                  {m.text}
+                </div>
+              ))}
+              {typing && (
+                <div className="bubble ai" style={{ color: "var(--ink-3)" }}>
+                  <span className="typing-dots">Thinking…</span>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+            <div className="setup-chat-input">
+              <input
+                type="text"
+                placeholder="Adjust the workflow…"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && sendMessage()}
+                disabled={typing}
+              />
+              <button className="btn sm" onClick={sendMessage} disabled={!input.trim() || typing}>Send</button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Workflow steps only (no chat) during pipeline/results */
+        <div className="steps-friendly">
+          {workflow.map((s, i) => (
+            <div className="sf-row" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
+              <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
+              <div>
+                <div className="lbl">{s.label}</div>
+                {expandedStep === i && <div className="det fade-in">{s.detail}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Approve or Pipeline */}
+      {phase === "edit" && (
+        <div className="cta-center" style={{ marginTop: 32 }}>
+          <div className="text" style={{ textAlign: "center", marginBottom: 16 }}>
+            <strong>Happy with the workflow?</strong> Approve to run safety checks.
+          </div>
+          <button className="btn lg" onClick={startPipeline}>
+            Approve & run checks <Arrow />
+          </button>
+        </div>
+      )}
+
+      {/* Pipeline animation */}
+      {phase === "pipeline" && (
+        <div className="pipeline fade-in" style={{ marginTop: 32 }}>
+          <h3 className="serif" style={{ fontWeight: 400, fontSize: 26, letterSpacing: "-0.015em", marginBottom: 20 }}>
+            Running safety checks…
+          </h3>
+          <div className="pipeline-stages">
+            {PIPELINE_STAGES.map((s, i) => {
+              const isDone = pipelineStage > i;
+              const isActive = pipelineStage === i;
+              return (
+                <div key={i} className={"pipeline-stage" + (isDone ? " done" : isActive ? " active" : "")}>
+                  <div className="pipeline-icon">
+                    {isDone ? "✓" : isActive ? <span className="spinner" /> : (i + 1)}
+                  </div>
+                  <div>
+                    <div className="pipeline-label">{s.label}</div>
+                    <div className="pipeline-desc">{isDone ? "Complete" : isActive ? s.desc : "Waiting…"}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Results */}
+      {phase === "results" && (
+        <div className="fade-in" style={{ marginTop: 32 }}>
+          <div className="sim-result-hero">
             <div>
-              <div className="lbl">{s.label}</div>
-              <div className="det">{s.detail}</div>
+              <div className="sim-score tabular">{SIM_RESULTS.score}%</div>
+              <div className="sim-score-label">success rate</div>
+            </div>
+            <div className="sim-stats">
+              <div className="sim-stat">
+                <div className="sim-stat-v tabular">{SIM_RESULTS.total}</div>
+                <div className="sim-stat-k">scenarios tested</div>
+              </div>
+              <div className="sim-stat">
+                <div className="sim-stat-v tabular" style={{ color: "var(--go)" }}>{SIM_RESULTS.passed}</div>
+                <div className="sim-stat-k">passed</div>
+              </div>
+              <div className="sim-stat">
+                <div className="sim-stat-v tabular" style={{ color: "var(--wait)" }}>{SIM_RESULTS.failed}</div>
+                <div className="sim-stat-k">failed</div>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
 
-      <div className="card card-pad-lg" style={{ marginTop: 20, background: "var(--gold-soft)", border: "1px solid var(--gold)" }}>
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-          <div style={{ fontSize: 24 }}>👋</div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>You're always the final say.</div>
-            <div style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.55 }}>
-              No email gets sent without you clicking "Send it." If something looks unusual — a payment plan, a complaint, a missing invoice — No-Go AI will pause and ask you what to do.
+          <div className="pill go" style={{ marginTop: 16, height: 28, fontSize: 13 }}>
+            <span className="dot" /> Workflow marked as safe
+          </div>
+
+          {/* Failed scenarios */}
+          <div
+            className="collapsible-header"
+            onClick={() => setShowFailures(o => !o)}
+            style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginTop: 24, marginBottom: 8 }}
+          >
+            <span style={{ fontSize: 15, fontWeight: 500 }}>
+              {SIM_RESULTS.failed} failed scenario{SIM_RESULTS.failed === 1 ? "" : "s"}
+            </span>
+            <span style={{ fontSize: 14, color: "var(--ink-3)", transition: "transform 200ms", transform: showFailures ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
+          </div>
+          {showFailures && (
+            <div className="fail-list fade-in">
+              {SIM_RESULTS.failures.map((f, i) => (
+                <div className="fail-row" key={i}>
+                  <div className="fail-tenant">{f.tenant}</div>
+                  <div className="fail-reason">{f.reason}</div>
+                  <div className="fail-suggestion">{f.suggestion}</div>
+                </div>
+              ))}
             </div>
+          )}
+
+          <div className="cta-center" style={{ marginTop: 32 }}>
+            <div className="text" style={{ textAlign: "center", marginBottom: 16 }}>
+              <strong>Ready to go live.</strong> Deploy this workflow to start handling late rent reminders.
+            </div>
+            <button className="btn lg" onClick={onReady}>
+              Deploy <Arrow />
+            </button>
           </div>
         </div>
-      </div>
-
-      <div className="cta">
-        <div className="text">
-          {step < HOW_IT_WORKS.length
-            ? <span>Setting things up…</span>
-            : <span><strong>Ready.</strong> No-Go AI found 3 emails to look at this morning.</span>}
-        </div>
-        <button className="btn lg" disabled={step < HOW_IT_WORKS.length} onClick={onReady}>
-          Open my inbox <Arrow />
-        </button>
-      </div>
+      )}
     </div>
   );
 }
