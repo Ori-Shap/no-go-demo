@@ -323,12 +323,16 @@ const CONVERSATIONS = [
 
 function App() {
   const [convIdx, setConvIdx] = useState(0);
-  const [handled, setHandled] = useState({});
+  const [handled, setHandled] = useState({}); // id -> { action, messages: [{from, text}] }
   const [showTyping, setShowTyping] = useState(true);
   const [showMessage, setShowMessage] = useState(false);
   const [allDone, setAllDone] = useState(false);
   const [doneTyping, setDoneTyping] = useState(false);
   const [doneMessage, setDoneMessage] = useState(false);
+  const [userInput, setUserInput] = useState("");
+  const [editMode, setEditMode] = useState(false); // waiting for edit text
+  const [extraMessages, setExtraMessages] = useState([]); // extra bubbles for current conv
+  const [aiTyping, setAiTyping] = useState(false);
   const bodyRef = useRef(null);
 
   const conv = CONVERSATIONS[convIdx];
@@ -339,13 +343,15 @@ function App() {
     if (!conv || handled[conv.id]) return;
     setShowTyping(true);
     setShowMessage(false);
+    setEditMode(false);
+    setExtraMessages([]);
     const t1 = setTimeout(() => { setShowTyping(false); setShowMessage(true); }, 1200 + Math.random() * 800);
     return () => clearTimeout(t1);
   }, [convIdx]);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-  }, [showMessage, showTyping, handled, doneTyping, doneMessage]);
+  }, [showMessage, showTyping, handled, doneTyping, doneMessage, extraMessages, aiTyping]);
 
   // Show wrap-up message after all done
   useEffect(() => {
@@ -355,76 +361,125 @@ function App() {
     return () => clearTimeout(t1);
   }, [allDone]);
 
-  const [userInput, setUserInput] = useState("");
-  const [autoSend, setAutoSend] = useState(false);
+  function advanceToNext(newHandled) {
+    const nextIdx = CONVERSATIONS.findIndex((c, i) => i > convIdx && !newHandled[c.id]);
+    if (nextIdx >= 0) {
+      setConvIdx(nextIdx);
+    } else if (CONVERSATIONS.every(c => newHandled[c.id])) {
+      setAllDone(true);
+    }
+  }
+
+  function finishConv(action, msgs) {
+    const entry = { action, messages: msgs || extraMessages };
+    const newHandled = { ...handled, [conv.id]: entry };
+    setHandled(newHandled);
+    setUserInput("");
+    setEditMode(false);
+    setExtraMessages([]);
+    setTimeout(() => advanceToNext(newHandled), 800);
+  }
 
   function parseAction(text) {
     const lower = text.toLowerCase().trim();
     if (lower.includes("send all") && lower.includes("don't ask")) return "send-all-trust";
     if (lower.includes("send all") || lower.includes("sendall")) return "send-all";
-    if (lower.includes("send")) return "Send it";
-    if (lower.includes("skip")) return "Skip";
-    if (lower.includes("edit")) return "Edit";
+    if (lower.includes("send")) return "send";
+    if (lower.includes("skip")) return "skip";
+    if (lower.includes("edit")) return "edit";
     return null;
-  }
-
-  function handleAction(action, displayText) {
-    const display = displayText || action;
-    setHandled(h => ({ ...h, [conv.id]: display }));
-    setUserInput("");
-    setTimeout(() => {
-      const newHandled = { ...handled, [conv.id]: display };
-      const nextIdx = CONVERSATIONS.findIndex((c, i) => i > convIdx && !newHandled[c.id]);
-      if (nextIdx >= 0) {
-        setConvIdx(nextIdx);
-      } else if (CONVERSATIONS.every(c => newHandled[c.id])) {
-        setAllDone(true);
-      }
-    }, 800);
   }
 
   function submitInput() {
     const text = userInput.trim();
     if (!text) return;
-    const action = parseAction(text);
-    if (!action) {
-      // Unrecognized — show as outgoing then AI asks again
-      setHandled(h => ({ ...h })); // no-op to trigger re-render
-      setUserInput("");
+    setUserInput("");
+
+    // If in edit mode, treat as the edit content
+    if (editMode) {
+      const msgs = [
+        ...extraMessages,
+        { from: "user", text },
+      ];
+      setExtraMessages(msgs);
+      setAiTyping(true);
+      setTimeout(() => {
+        const updated = [...msgs, { from: "ai", text: "Updated and sent with your changes." }];
+        setExtraMessages(updated);
+        setAiTyping(false);
+        setTimeout(() => finishConv("Edited & sent", updated), 600);
+      }, 1000);
       return;
     }
-    if (action === "send-all-trust") {
-      handleAction("Send it", "Send all and don't ask again");
-      setAutoSend(true);
-    } else if (action === "send-all") {
-      handleAction("Send it", "Send all");
-      setAutoSend(true);
+
+    const action = parseAction(text);
+
+    if (action === "edit") {
+      const msgs = [
+        { from: "user", text },
+      ];
+      setExtraMessages(msgs);
+      setAiTyping(true);
+      setTimeout(() => {
+        const updated = [...msgs, { from: "ai", text: "Sure — type the text you'd like to send instead, and I'll use that." }];
+        setExtraMessages(updated);
+        setAiTyping(false);
+        setEditMode(true);
+      }, 800);
+    } else if (action === "skip") {
+      const msgs = [{ from: "user", text }];
+      setExtraMessages(msgs);
+      setAiTyping(true);
+      setTimeout(() => {
+        const updated = [...msgs, { from: "ai", text: "Skipped — I'll save this for later." }];
+        setExtraMessages(updated);
+        setAiTyping(false);
+        setTimeout(() => finishConv("Skipped", updated), 600);
+      }, 600);
+    } else if (action === "send") {
+      const msgs = [{ from: "user", text }];
+      setExtraMessages(msgs);
+      setAiTyping(true);
+      setTimeout(() => {
+        const updated = [...msgs, { from: "ai", text: conv.sentReply }];
+        setExtraMessages(updated);
+        setAiTyping(false);
+        setTimeout(() => finishConv("Sent", updated), 600);
+      }, 600);
+    } else if (action === "send-all" || action === "send-all-trust") {
+      // Send current + silently handle all remaining
+      const msgs = [{ from: "user", text }];
+      setExtraMessages(msgs);
+      setAiTyping(true);
+      const remaining = CONVERSATIONS.filter((c, i) => i >= convIdx && !handled[c.id]);
+      setTimeout(() => {
+        const summary = `Done — sent all ${remaining.length} remaining item${remaining.length === 1 ? "" : "s"}.${action === "send-all-trust" ? " I won't ask next time." : ""}`;
+        const updated = [...msgs, { from: "ai", text: summary }];
+        setExtraMessages(updated);
+        setAiTyping(false);
+        // Mark all remaining as handled
+        const newHandled = { ...handled };
+        remaining.forEach(c => { newHandled[c.id] = { action: "Sent (auto)", messages: [] }; });
+        setHandled(newHandled);
+        setTimeout(() => {
+          setExtraMessages([]);
+          setAllDone(true);
+        }, 800);
+      }, 1000);
     } else {
-      handleAction(action, text);
+      // Unrecognized
+      const msgs = [...extraMessages, { from: "user", text }];
+      setExtraMessages(msgs);
+      setAiTyping(true);
+      setTimeout(() => {
+        const updated = [...msgs, { from: "ai", text: "I didn't catch that. Try: send it, skip, edit, or send all." }];
+        setExtraMessages(updated);
+        setAiTyping(false);
+      }, 600);
     }
   }
 
-  // Auto-send remaining after "send all"
-  useEffect(() => {
-    if (!autoSend || allDone) return;
-    if (!conv || handled[conv.id]) return;
-    // Wait for new conv to appear, then auto-handle
-    const t = setTimeout(() => {
-      setHandled(h => ({ ...h, [conv.id]: "Send it (auto)" }));
-      setTimeout(() => {
-        const newHandled = { ...handled, [conv.id]: "Send it (auto)" };
-        const nextIdx = CONVERSATIONS.findIndex((c, i) => i > convIdx && !newHandled[c.id]);
-        if (nextIdx >= 0) {
-          setConvIdx(nextIdx);
-        } else {
-          setAllDone(true);
-        }
-      }, 800);
-    }, 1200);
-    return () => clearTimeout(t);
-  }, [autoSend, convIdx, showMessage]);
-
-  const handledCount = Object.keys(handled).length;
+  const handledCount = Object.values(handled).filter(Boolean).length;
 
   return (
     <div className="wa-shell">
@@ -448,8 +503,8 @@ function App() {
 
         {/* Previous handled conversations */}
         {CONVERSATIONS.slice(0, convIdx).map(c => {
-          const action = handled[c.id];
-          if (!action) return null;
+          const h = handled[c.id];
+          if (!h) return null;
           return (
             <React.Fragment key={c.id}>
               <div className="wa-msg incoming">
@@ -457,17 +512,16 @@ function App() {
                 <div className="wa-msg-text">{c.aiMessage}</div>
                 <div className="wa-msg-meta"><span className="wa-msg-time">9:14 AM</span></div>
               </div>
-              <div className="wa-msg outgoing">
-                <div className="wa-msg-text">{action}</div>
-                <div className="wa-msg-meta">
-                  <span className="wa-msg-time">9:14 AM</span>
-                  <span className="wa-checks">✓✓</span>
+              {(h.messages || []).map((m, i) => (
+                <div key={i} className={"wa-msg " + (m.from === "ai" ? "incoming" : "outgoing")}>
+                  {m.from === "ai" && <div className="wa-msg-sender">No-Go AI</div>}
+                  <div className="wa-msg-text">{m.text}</div>
+                  <div className="wa-msg-meta">
+                    <span className="wa-msg-time">9:14 AM</span>
+                    {m.from === "user" && <span className="wa-checks">✓✓</span>}
+                  </div>
                 </div>
-              </div>
-              <div className="wa-msg incoming" style={{ fontSize: 13, color: "#8696a0" }}>
-                <div className="wa-msg-text">{c.sentReply}</div>
-                <div className="wa-msg-meta"><span className="wa-msg-time">9:14 AM</span></div>
-              </div>
+              ))}
             </React.Fragment>
           );
         })}
@@ -501,21 +555,24 @@ function App() {
           </div>
         )}
 
-        {/* Current handled */}
-        {conv && isHandled && (
-          <>
-            <div className="wa-msg outgoing fade-in">
-              <div className="wa-msg-text">{handled[conv.id]}</div>
-              <div className="wa-msg-meta">
-                <span className="wa-msg-time">9:15 AM</span>
-                <span className="wa-checks">✓✓</span>
-              </div>
+        {/* Extra messages (edit flow, skip confirm, etc.) */}
+        {extraMessages.map((m, i) => (
+          <div key={i} className={"wa-msg fade-in " + (m.from === "ai" ? "incoming" : "outgoing")}>
+            {m.from === "ai" && <div className="wa-msg-sender">No-Go AI</div>}
+            <div className="wa-msg-text">{m.text}</div>
+            <div className="wa-msg-meta">
+              <span className="wa-msg-time">9:15 AM</span>
+              {m.from === "user" && <span className="wa-checks">✓✓</span>}
             </div>
-            <div className="wa-msg incoming fade-in">
-              <div className="wa-msg-text" style={{ fontSize: 13, color: "#8696a0" }}>{conv.sentReply}</div>
-              <div className="wa-msg-meta"><span className="wa-msg-time">9:15 AM</span></div>
-            </div>
-          </>
+          </div>
+        ))}
+
+        {/* AI typing indicator for replies */}
+        {aiTyping && (
+          <div className="wa-msg incoming fade-in">
+            <div className="wa-msg-sender">No-Go AI</div>
+            <div className="wa-typing"><span /><span /><span /></div>
+          </div>
         )}
 
         {/* Wrap-up message */}
@@ -535,18 +592,19 @@ function App() {
       </div>
 
       {/* Input area */}
-      {!allDone && conv && showMessage && !isHandled && !autoSend ? (
+      {!allDone && conv && showMessage && !isHandled ? (
         <div className="wa-input-bar fade-in">
           <input
             type="text"
             className="wa-input"
-            placeholder="send it · skip · edit · send all"
+            placeholder={editMode ? "Type your replacement text…" : "send it · skip · edit · send all"}
             value={userInput}
             onChange={e => setUserInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && submitInput()}
+            disabled={aiTyping}
             autoFocus
           />
-          <button className="wa-send-btn" onClick={submitInput} disabled={!userInput.trim()}>
+          <button className="wa-send-btn" onClick={submitInput} disabled={!userInput.trim() || aiTyping}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
             </svg>

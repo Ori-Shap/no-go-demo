@@ -353,10 +353,21 @@ function Recommend({ onSetup }) {
                     {l.title}
                     {l.primary && <span className="pill primary" style={{ marginLeft: 8 }}><span className="dot" />Recommended</span>}
                   </div>
-                  <div className="suggest-stats">
-                    <span>{l.count}</span>
-                    <span>{l.hours}</span>
-                    {l.revenue !== "—" && <span>{l.revenue}</span>}
+                  <div className="suggest-values">
+                    <div className="suggest-val">
+                      <span className="suggest-val-num">{l.count.replace("/month", "")}</span>
+                      <span className="suggest-val-label">/month</span>
+                    </div>
+                    <div className="suggest-val">
+                      <span className="suggest-val-num">{l.hours.replace("/month", "")}</span>
+                      <span className="suggest-val-label">saved</span>
+                    </div>
+                    {l.revenue !== "—" && (
+                      <div className="suggest-val">
+                        <span className="suggest-val-num suggest-val-green">{l.revenue.replace("/month", "")}</span>
+                        <span className="suggest-val-label">/month</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <span className="suggest-arrow" style={{ transform: isExp ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
