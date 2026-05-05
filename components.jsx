@@ -272,31 +272,38 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
         </div>
       )}
 
-      <div className="cta">
-        {phase === "connect" ? (
-          <>
-            <div className="text">
-              {canLookAround
-                ? <span><strong>Looking good!</strong> Let's see what No-Go AI finds.</span>
-                : <span>Connect at least <strong>three</strong> of the recommended apps to keep going.</span>}
+      {phase === "connect" ? (
+        canLookAround ? (
+          <div className="cta-center">
+            <div className="text" style={{ textAlign: "center", marginBottom: 16 }}>
+              <strong>Looking good!</strong> Let's see what No-Go AI finds.
             </div>
-            <button className="btn lg" disabled={!canLookAround} onClick={startScan}>
+            <button className="btn lg" onClick={startScan}>
               Look around <Arrow />
             </button>
-          </>
+          </div>
         ) : (
-          <>
+          <div className="cta">
             <div className="text">
-              {scanDone
-                ? <span><strong>All done.</strong> No-Go AI found 4 things it could help with. Let's look.</span>
-                : <span>This is read-only. Nothing is being sent or changed.</span>}
+              Connect at least <strong>three</strong> of the recommended apps to keep going.
             </div>
-            <button className="btn lg" disabled={!scanDone} onClick={onDone}>
-              See what we found <Arrow />
+            <button className="btn lg" disabled>
+              Look around <Arrow />
             </button>
-          </>
-        )}
-      </div>
+          </div>
+        )
+      ) : (
+        <div className="cta">
+          <div className="text">
+            {scanDone
+              ? <span><strong>All done.</strong> No-Go AI found 4 things it could help with. Let's look.</span>
+              : <span>This is read-only. Nothing is being sent or changed.</span>}
+          </div>
+          <button className="btn lg" disabled={!scanDone} onClick={onDone}>
+            See what we found <Arrow />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -304,14 +311,25 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
 /* ===== 3. Recommend ===== */
 function Recommend({ onSetup }) {
   const [whyOpen, setWhyOpen] = useState(false);
+  const [selected, setSelected] = useState(() => {
+    const init = {};
+    FOUND_LOOPS.forEach(l => { init[l.id] = !!l.primary; });
+    return init;
+  });
+
+  function toggle(id) {
+    setSelected(s => ({ ...s, [id]: !s[id] }));
+  }
+
+  const selectedCount = Object.values(selected).filter(Boolean).length;
 
   return (
     <div className="fade-in">
       <div className="greeting">Here's what No-Go AI thinks</div>
-      <h1 className="display">We can help with <strong>chasing late rent</strong> first.</h1>
+      <h1 className="display">Choose what to <strong>hand over.</strong></h1>
       <p className="lede">
-        It's the most common task we saw, it's safe to help with, and you'll feel the time saved
-        almost right away.
+        We found repetitive work we can help with. Pick what you'd like No-Go AI to handle —
+        you can always change your mind later.
       </p>
 
       <div className="rec-headline">
@@ -364,18 +382,36 @@ function Recommend({ onSetup }) {
         </div>
       )}
 
-      <div className="rec-list">
+      <div className="rec-list" style={{ marginTop: 28 }}>
         <div className="rec-list-head">
-          We also found these — but they're not ready yet
+          {selectedCount} selected · click to select or deselect
         </div>
-        {FOUND_LOOPS.filter(l => !l.primary).map(l => (
-          <div className={"rec-item " + l.readiness} key={l.id}>
+        {FOUND_LOOPS.map(l => (
+          <div
+            className={"rec-item " + l.readiness + (selected[l.id] ? " selected" : "")}
+            key={l.id}
+            onClick={() => toggle(l.id)}
+            style={{ cursor: "pointer" }}
+          >
+            <div className="sel-check">
+              {selected[l.id] ? (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <rect width="20" height="20" rx="6" fill="var(--primary)" />
+                  <path d="M6 10l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <rect x="0.5" y="0.5" width="19" height="19" rx="5.5" stroke="var(--rule-2)" />
+                </svg>
+              )}
+            </div>
             <div className="badge">{l.emoji}</div>
             <div>
               <div className="title">{l.title}</div>
               <div className="sub">{l.count}</div>
             </div>
             <div>
+              {l.primary && <span className="pill primary"><span className="dot" />Recommended</span>}
               {l.readiness === "wait" && <span className="pill wait"><span className="dot" />Maybe later</span>}
               {l.readiness === "no" && <span className="pill"><span className="dot" />Not safe yet</span>}
             </div>
@@ -383,11 +419,13 @@ function Recommend({ onSetup }) {
         ))}
       </div>
 
-      <div className="cta">
-        <div className="text">
+      <div className="cta-center">
+        <div className="text" style={{ textAlign: "center", marginBottom: 16 }}>
           <strong>You're always in control.</strong> Nothing gets sent without you clicking "Send."
         </div>
-        <button className="btn lg" onClick={onSetup}>Set this up <Arrow /></button>
+        <button className="btn lg" disabled={selectedCount === 0} onClick={onSetup}>
+          Hand over {selectedCount} {selectedCount === 1 ? "task" : "tasks"} to No-Go <Arrow />
+        </button>
       </div>
     </div>
   );
