@@ -390,13 +390,11 @@ function Recommend({ onSetup }) {
 /* ===== 4. Setup ===== */
 function Setup({ onReady }) {
   const [workflow, setWorkflow] = useState(HOW_IT_WORKS.map(s => ({ ...s })));
-  const [messages, setMessages] = useState([
-    { from: "ai", text: "Here's the workflow I've built for chasing late rent. Review the steps below — if you'd like to change anything, just tell me." }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [phase, setPhase] = useState("edit"); // "edit" | "pipeline" | "results" | "deploy"
-  const [pipelineStage, setPipelineStage] = useState(0); // 0=dev, 1=test, 2=simulate
+  const [phase, setPhase] = useState("edit"); // "edit" | "pipeline" | "results"
+  const [pipelineStage, setPipelineStage] = useState(0); // 0, 1, 2, 3(done)
   const [showFailures, setShowFailures] = useState(false);
   const [expandedStep, setExpandedStep] = useState(null);
 
@@ -432,164 +430,126 @@ function Setup({ onReady }) {
     }, 800 + Math.random() * 600);
   }
 
+  const PIPELINE = ["Build", "Test", "Simulate"];
+
   function startPipeline() {
     setPhase("pipeline");
     setPipelineStage(0);
-    setTimeout(() => setPipelineStage(1), 1800);
-    setTimeout(() => setPipelineStage(2), 3600);
-    setTimeout(() => setPhase("results"), 5800);
+    setTimeout(() => setPipelineStage(1), 1400);
+    setTimeout(() => setPipelineStage(2), 2800);
+    setTimeout(() => { setPipelineStage(3); setTimeout(() => setPhase("results"), 600); }, 4200);
   }
-
-  const PIPELINE_STAGES = [
-    { label: "Building", desc: "Compiling workflow into executable steps…" },
-    { label: "Testing", desc: "Running unit checks on each step…" },
-    { label: "Simulating", desc: "Replaying 94 real scenarios from last month…" },
-  ];
 
   return (
     <div className="fade-in">
       <div className="greeting">Setting up your workflow</div>
-      <h1 className="display">Review and <strong>refine.</strong></h1>
+      <h1 className="display">Here's <strong>the workflow.</strong></h1>
       <p className="lede">
-        No-Go AI built a workflow based on your data. Tweak it with the chat below, then approve to run it through safety checks.
+        Tap a step to see details. Type below to tweak it.
       </p>
 
-      {/* Workflow + Chat side by side */}
-      {phase === "edit" ? (
-        <div className="setup-grid">
-          <div className="steps-friendly">
-            {workflow.map((s, i) => (
-              <div className="sf-row fade-in" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
-                <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
-                <div>
-                  <div className="lbl">{s.label}</div>
-                  {expandedStep === i && <div className="det fade-in">{s.detail}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="setup-chat">
-            <div className="setup-chat-body">
-              {messages.map((m, i) => (
-                <div key={i} className={"bubble " + (m.from === "ai" ? "ai" : "draft")} style={m.from === "user" ? { alignSelf: "flex-end" } : {}}>
-                  {m.text}
-                </div>
-              ))}
-              {typing && (
-                <div className="bubble ai" style={{ color: "var(--ink-3)" }}>
-                  <span className="typing-dots">Thinking…</span>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-            <div className="setup-chat-input">
-              <input
-                type="text"
-                placeholder="Adjust the workflow…"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && sendMessage()}
-                disabled={typing}
-              />
-              <button className="btn sm" onClick={sendMessage} disabled={!input.trim() || typing}>Send</button>
+      {/* Workflow steps */}
+      <div className="steps-friendly">
+        {workflow.map((s, i) => (
+          <div className="sf-row" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
+            <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
+            <div>
+              <div className="lbl">{s.label}</div>
+              {expandedStep === i && <div className="det fade-in">{s.detail}</div>}
             </div>
           </div>
-        </div>
-      ) : (
-        /* Workflow steps only (no chat) during pipeline/results */
-        <div className="steps-friendly">
-          {workflow.map((s, i) => (
-            <div className="sf-row" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
-              <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
-              <div>
-                <div className="lbl">{s.label}</div>
-                {expandedStep === i && <div className="det fade-in">{s.detail}</div>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
-      {/* Approve or Pipeline */}
+      {/* Chat */}
       {phase === "edit" && (
-        <div className="cta-center" style={{ marginTop: 32 }}>
-          <div className="text" style={{ textAlign: "center", marginBottom: 16 }}>
-            <strong>Happy with the workflow?</strong> Approve to run safety checks.
+        <>
+          {messages.length > 0 && (
+            <div className="setup-chat" style={{ marginTop: 16 }}>
+              <div className="setup-chat-body">
+                {messages.map((m, i) => (
+                  <div key={i} className={"bubble " + (m.from === "ai" ? "ai" : "draft")} style={m.from === "user" ? { alignSelf: "flex-end" } : {}}>
+                    {m.text}
+                  </div>
+                ))}
+                {typing && (
+                  <div className="bubble ai" style={{ color: "var(--ink-3)" }}>Thinking…</div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+            </div>
+          )}
+          <div className="setup-chat-standalone">
+            <input
+              type="text"
+              placeholder="Change anything — tone, timing, escalation…"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && sendMessage()}
+              disabled={typing}
+            />
+            <button className="btn sm" onClick={sendMessage} disabled={!input.trim() || typing}>Send</button>
           </div>
-          <button className="btn lg" onClick={startPipeline}>
-            Approve & run checks <Arrow />
-          </button>
-        </div>
+
+          <div className="cta-center">
+            <button className="btn lg" onClick={startPipeline}>
+              Approve <Arrow />
+            </button>
+          </div>
+        </>
       )}
 
-      {/* Pipeline animation */}
+      {/* Pipeline stepper */}
       {phase === "pipeline" && (
-        <div className="pipeline fade-in" style={{ marginTop: 32 }}>
-          <h3 className="serif" style={{ fontWeight: 400, fontSize: 26, letterSpacing: "-0.015em", marginBottom: 20 }}>
-            Running safety checks…
-          </h3>
-          <div className="pipeline-stages">
-            {PIPELINE_STAGES.map((s, i) => {
-              const isDone = pipelineStage > i;
-              const isActive = pipelineStage === i;
-              return (
-                <div key={i} className={"pipeline-stage" + (isDone ? " done" : isActive ? " active" : "")}>
-                  <div className="pipeline-icon">
-                    {isDone ? "✓" : isActive ? <span className="spinner" /> : (i + 1)}
+        <div className="pipeline-stepper fade-in" style={{ marginTop: 28 }}>
+          {PIPELINE.map((label, i) => {
+            const isDone = pipelineStage > i;
+            const isActive = pipelineStage === i;
+            return (
+              <React.Fragment key={i}>
+                {i > 0 && (
+                  <div className={"pipeline-arrow" + (pipelineStage > i ? " done" : "")}>
+                    <svg width="24" height="14" viewBox="0 0 24 14" fill="none">
+                      <path d="M1 7h21M17 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </div>
-                  <div>
-                    <div className="pipeline-label">{s.label}</div>
-                    <div className="pipeline-desc">{isDone ? "Complete" : isActive ? s.desc : "Waiting…"}</div>
+                )}
+                <div className={"pipeline-step" + (isDone ? " done" : isActive ? " active" : "")}>
+                  <div className="pipeline-step-icon">
+                    {isDone ? "✓" : isActive ? <span className="spinner" /> : ""}
                   </div>
+                  <div className="pipeline-step-label">{label}</div>
                 </div>
-              );
-            })}
-          </div>
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
 
       {/* Results */}
       {phase === "results" && (
-        <div className="fade-in" style={{ marginTop: 32 }}>
-          <div className="sim-result-hero">
-            <div>
-              <div className="sim-score tabular">{SIM_RESULTS.score}%</div>
-              <div className="sim-score-label">success rate</div>
+        <div className="fade-in" style={{ marginTop: 28 }}>
+          <div className="sim-result">
+            <div className="sim-result-top">
+              <span className="pill go" style={{ height: 30, fontSize: 14 }}><span className="dot" /> Safe to deploy</span>
             </div>
-            <div className="sim-stats">
-              <div className="sim-stat">
-                <div className="sim-stat-v tabular">{SIM_RESULTS.total}</div>
-                <div className="sim-stat-k">scenarios tested</div>
-              </div>
-              <div className="sim-stat">
-                <div className="sim-stat-v tabular" style={{ color: "var(--go)" }}>{SIM_RESULTS.passed}</div>
-                <div className="sim-stat-k">passed</div>
-              </div>
-              <div className="sim-stat">
-                <div className="sim-stat-v tabular" style={{ color: "var(--wait)" }}>{SIM_RESULTS.failed}</div>
-                <div className="sim-stat-k">failed</div>
-              </div>
+            <div className="sim-result-score serif tabular">{SIM_RESULTS.score}%<small> success rate</small></div>
+            <div className="sim-result-counts">
+              <span><strong>{SIM_RESULTS.total}</strong> scenarios tested</span>
+              <span style={{ color: "var(--go)" }}><strong>{SIM_RESULTS.passed}</strong> passed</span>
+              <span style={{ color: "var(--wait)" }}><strong>{SIM_RESULTS.failed}</strong> failed</span>
             </div>
           </div>
 
-          <div className="pill go" style={{ marginTop: 16, height: 28, fontSize: 13 }}>
-            <span className="dot" /> Workflow marked as safe
-          </div>
-
-          {/* Failed scenarios */}
           <div
-            className="collapsible-header"
             onClick={() => setShowFailures(o => !o)}
-            style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginTop: 24, marginBottom: 8 }}
+            style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginTop: 14, fontSize: 14, color: "var(--ink-2)" }}
           >
-            <span style={{ fontSize: 15, fontWeight: 500 }}>
-              {SIM_RESULTS.failed} failed scenario{SIM_RESULTS.failed === 1 ? "" : "s"}
-            </span>
-            <span style={{ fontSize: 14, color: "var(--ink-3)", transition: "transform 200ms", transform: showFailures ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
+            <span>{SIM_RESULTS.failed} failed scenario{SIM_RESULTS.failed === 1 ? "" : "s"}</span>
+            <span style={{ fontSize: 12, color: "var(--ink-3)", transition: "transform 200ms", transform: showFailures ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
           </div>
           {showFailures && (
-            <div className="fail-list fade-in">
+            <div className="fail-list fade-in" style={{ marginTop: 8 }}>
               {SIM_RESULTS.failures.map((f, i) => (
                 <div className="fail-row" key={i}>
                   <div className="fail-tenant">{f.tenant}</div>
@@ -600,10 +560,7 @@ function Setup({ onReady }) {
             </div>
           )}
 
-          <div className="cta-center" style={{ marginTop: 32 }}>
-            <div className="text" style={{ textAlign: "center", marginBottom: 16 }}>
-              <strong>Ready to go live.</strong> Deploy this workflow to start handling late rent reminders.
-            </div>
+          <div className="cta-center">
             <button className="btn lg" onClick={onReady}>
               Deploy <Arrow />
             </button>
