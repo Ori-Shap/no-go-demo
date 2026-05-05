@@ -925,11 +925,19 @@ function Running({ onBackToRecommend }) {
 
         {/* Actions */}
         <div className="running-actions">
-          <button className={"btn sm " + (paused ? "" : "ghost")} onClick={() => setPaused(p => !p)}>
-            {paused ? "Resume" : "Pause"}
+          <button className="running-icon-btn" onClick={() => setPaused(p => !p)} title={paused ? "Resume" : "Pause"}>
+            {paused ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            )}
           </button>
-          <button className={"btn sm ghost"} onClick={() => setEditing(e => !e)}>
-            {editing ? "Close editor" : "Edit workflow"}
+          <button className="running-icon-btn" onClick={() => setEditing(e => !e)} title={editing ? "Close editor" : "Edit workflow"}>
+            {editing ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+            )}
           </button>
         </div>
 

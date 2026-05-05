@@ -1164,10 +1164,26 @@ h1.display strong { font-weight: 600; }
 .running-card.live { }
 .running-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-top: 18px;
   padding-top: 18px;
   border-top: 1px solid rgba(0,0,0,0.06);
+}
+.running-icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--rule-2);
+  background: var(--paper);
+  color: var(--ink-2);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background 120ms, color 120ms, border-color 120ms;
+  padding: 0;
+}
+.running-icon-btn:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+  border-color: var(--ink-3);
 }
 .running-edit {
   margin-top: 18px;
