@@ -1,37 +1,37 @@
 /* No-Go AI — Abigail edition. WhatsApp-simple. */
 
 :root {
-  --bg: oklch(98.5% 0.005 100);          /* Cloud Dancer warm white */
-  --bg-2: oklch(96% 0.008 130);          /* Veiled Vista wash */
-  --paper: oklch(99.5% 0.003 100);
-  --ink: oklch(28% 0.02 240);            /* deep Baltic Sea */
-  --ink-2: oklch(45% 0.02 240);
-  --ink-3: oklch(60% 0.015 240);
-  --ink-4: oklch(80% 0.010 240);
-  --rule: oklch(92% 0.010 130);
-  --rule-2: oklch(86% 0.012 130);
+  --bg: #f5f3f0;                          /* Cloud Dancer */
+  --bg-2: #edebe7;                        /* slightly darker */
+  --paper: #fbfaf8;                       /* white-ish Cloud Dancer */
+  --ink: #1e1f21;                         /* Stretch Limo */
+  --ink-2: #6b6e5d;                       /* Hematite */
+  --ink-3: #b0a899;                       /* Cloud Cover */
+  --ink-4: #ccc5bb;                       /* lighter Cloud Cover */
+  --rule: #ddd7ce;                        /* warm light */
+  --rule-2: #ccc5bb;                      /* warm medium */
 
-  --mint: oklch(86% 0.05 145);            /* Veiled Vista 12-6000 */
-  --mint-deep: oklch(58% 0.10 150);
-  --mint-soft: oklch(95% 0.04 145);
-  --baltic: oklch(72% 0.09 230);          /* Baltic Sea 14-4320 */
-  --baltic-deep: oklch(50% 0.13 235);
-  --baltic-soft: oklch(95% 0.04 230);
-  --gold: oklch(82% 0.10 95);             /* Golden Mist 15-0624 */
-  --gold-deep: oklch(60% 0.14 80);
-  --gold-soft: oklch(96% 0.04 95);
-  --cloud: oklch(72% 0.012 240);          /* Cloud Cover */
-  --cloud-soft: oklch(94% 0.008 240);
+  --mint: #ddd7ce;                        /* warm rule — connected state bg */
+  --mint-deep: #1c4d5a;                   /* Dragonfly — success accent */
+  --mint-soft: #e8e2d9;                   /* Cloud Cover light — soft bg */
+  --baltic: #1c4d5a;                      /* Dragonfly */
+  --baltic-deep: #1c4d5a;                /* Dragonfly */
+  --baltic-soft: #e8e2d9;                 /* Cloud Cover light */
+  --gold: #cfc07c;                        /* Golden Mist */
+  --gold-deep: #9a8a3a;                   /* Golden Mist deeper */
+  --gold-soft: #f5f0dc;                   /* Golden Mist light */
+  --cloud: #b0a899;                       /* Cloud Cover */
+  --cloud-soft: #e8e2d9;                  /* lighter Cloud Cover */
 
-  --primary: var(--baltic-deep);          /* the "send" green of WhatsApp, but Baltic */
-  --primary-soft: var(--baltic-soft);
-  --go: var(--mint-deep);
-  --go-soft: var(--mint-soft);
-  --wait: var(--gold-deep);
-  --wait-soft: var(--gold-soft);
+  --primary: #1c4d5a;                     /* Dragonfly */
+  --primary-soft: #e8e2d9;                /* Cloud Cover light */
+  --go: #1c4d5a;                          /* Dragonfly — success */
+  --go-soft: #e8e2d9;                     /* Cloud Cover light */
+  --wait: #9a8a3a;                        /* Golden Mist deeper */
+  --wait-soft: #f5f0dc;                   /* Golden Mist light */
 
-  --shadow-1: 0 1px 2px 0 oklch(28% 0.02 240 / 0.05);
-  --shadow-2: 0 8px 24px -8px oklch(28% 0.02 240 / 0.12);
+  --shadow-1: 0 1px 2px 0 rgba(30, 31, 33, 0.05);
+  --shadow-2: 0 8px 24px -8px rgba(30, 31, 33, 0.12);
 
   --serif: "Source Serif 4", Georgia, serif;
   --sans: "Source Serif 4", Georgia, serif;  /* unified — same as serif */
@@ -132,7 +132,7 @@ body {
 .sidebar-badge {
   min-width: 18px; height: 18px;
   border-radius: 999px;
-  background: #e53935;
+  background: #8b2332;
   color: #fff;
   font-size: 11px;
   font-weight: 600;
@@ -215,7 +215,7 @@ h1.display strong { font-weight: 600; }
   gap: 10px;
   transition: transform 80ms, background 120ms;
 }
-.btn:hover { background: oklch(45% 0.13 235); }
+.btn:hover { background: #163f4a; }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.ghost {
@@ -252,9 +252,9 @@ h1.display strong { font-weight: 600; }
   font-weight: 500;
 }
 .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
-.pill.go { background: var(--mint-soft); color: oklch(38% 0.10 150); }
+.pill.go { background: var(--mint-soft); color: #1c4d5a; }
 .pill.go .dot { background: var(--mint-deep); }
-.pill.wait { background: var(--gold-soft); color: oklch(40% 0.12 80); }
+.pill.wait { background: var(--gold-soft); color: #9a8a3a; }
 .pill.wait .dot { background: var(--gold-deep); }
 .pill.primary { background: var(--primary-soft); color: var(--primary); }
 .pill.primary .dot { background: var(--primary); }
@@ -396,7 +396,7 @@ h1.display strong { font-weight: 600; }
 /* OAuth modal */
 .modal-bg {
   position: fixed; inset: 0;
-  background: oklch(28% 0.02 240 / 0.30);
+  background: rgba(30, 31, 33, 0.30);
   backdrop-filter: blur(3px);
   display: grid; place-items: center;
   z-index: 50;
@@ -407,7 +407,7 @@ h1.display strong { font-weight: 600; }
   background: var(--paper);
   border-radius: var(--radius-lg);
   padding: 32px;
-  box-shadow: 0 24px 64px -16px oklch(28% 0.02 240 / 0.25);
+  box-shadow: 0 24px 64px -16px rgba(30, 31, 33, 0.25);
 }
 .modal h3 {
   font-family: var(--serif); font-weight: 400;
@@ -449,7 +449,7 @@ h1.display strong { font-weight: 600; }
 
 /* ===== Scan ===== */
 .scan-hero {
-  background: linear-gradient(180deg, var(--mint-soft), var(--paper));
+  background: var(--mint-soft);
   border: 1px solid var(--mint);
   border-radius: var(--radius-lg);
   padding: 36px 40px;
@@ -518,7 +518,7 @@ h1.display strong { font-weight: 600; }
 
 /* ===== Recommendation ===== */
 .rec-headline {
-  background: linear-gradient(180deg, var(--gold-soft), var(--paper));
+  background: var(--gold-soft);
   border: 1px solid var(--gold);
   border-radius: var(--radius-lg);
   padding: 40px 44px;
@@ -757,13 +757,13 @@ h1.display strong { font-weight: 600; }
   margin-bottom: 8px;
   display: flex; align-items: center; gap: 6px;
 }
-.bubble .subj { font-size: 13px; color: var(--ink-3); margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid oklch(85% 0.04 230); }
+.bubble .subj { font-size: 13px; color: var(--ink-3); margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ccc5bb; }
 .bubble.note {
   background: var(--gold-soft);
   border: 1px solid var(--gold);
   align-self: flex-start;
   font-size: 14px;
-  color: oklch(36% 0.10 80);
+  color: #9a8a3a;
   border-radius: 12px;
 }
 .bubble.note strong { font-weight: 600; }
@@ -784,7 +784,7 @@ h1.display strong { font-weight: 600; }
   border-top: 1px solid var(--mint);
   display: flex; align-items: center; gap: 12px;
   font-size: 14px;
-  color: oklch(36% 0.10 150);
+  color: #1c4d5a;
 }
 .chat-handled .ic {
   width: 24px; height: 24px; border-radius: 50%;
@@ -887,7 +887,7 @@ h1.display strong { font-weight: 600; }
   padding: 48px 56px;
   margin-top: 28px;
 }
-.savings-hero .lbl { font-size: 14px; color: oklch(75% 0.02 240); }
+.savings-hero .lbl { font-size: 14px; color: #b0a899; }
 .savings-hero .big {
   font-family: var(--serif);
   font-size: 96px;
@@ -895,8 +895,8 @@ h1.display strong { font-weight: 600; }
   line-height: 1;
   margin-top: 12px;
 }
-.savings-hero .big small { font-size: 32px; color: oklch(75% 0.02 240); margin-left: 8px; font-family: var(--serif); }
-.savings-hero .desc { font-size: 16px; color: oklch(82% 0.02 240); margin-top: 16px; max-width: 50ch; line-height: 1.55; }
+.savings-hero .big small { font-size: 32px; color: #b0a899; margin-left: 8px; font-family: var(--serif); }
+.savings-hero .desc { font-size: 16px; color: #ccc5bb; margin-top: 16px; max-width: 50ch; line-height: 1.55; }
 
 .savings-grid {
   display: grid;
@@ -1302,7 +1302,7 @@ h1.display strong { font-weight: 600; }
   font-size: 14px; letter-spacing: 0.02em;
   padding: 5px 12px; border-radius: 100px;
   background: var(--mint-soft);
-  color: oklch(38% 0.10 150);
+  color: #1c4d5a;
   vertical-align: middle;
   margin-left: 14px;
   position: relative; top: -6px;
@@ -1311,13 +1311,13 @@ h1.display strong { font-weight: 600; }
 .trust-badge .dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--mint-deep);
-  box-shadow: 0 0 0 3px oklch(86% 0.05 145 / 0.6);
+  box-shadow: 0 0 0 3px rgba(197, 213, 176, 0.6);
 }
 
 .trust-offer {
   padding: 14px 20px;
   border-top: 1px solid var(--rule);
-  background: oklch(96% 0.012 230);
+  background: #e8e2d9;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   animation: fadeup 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -1333,15 +1333,15 @@ h1.display strong { font-weight: 600; }
 
 /* Auto-handled state */
 .chat-handled.auto {
-  background: oklch(96% 0.015 230);
+  background: #e8e2d9;
   border-top-color: var(--baltic);
-  color: oklch(36% 0.13 235);
+  color: #1c4d5a;
 }
 .chat-handled.auto .ic {
   background: var(--baltic-deep);
 }
 .chat-handled.pending {
-  background: oklch(97% 0.008 230);
+  background: #eef6f8;
   border-top-color: var(--rule);
   color: var(--ink-2);
 }
@@ -1360,15 +1360,15 @@ h1.display strong { font-weight: 600; }
   text-transform: uppercase;
   padding: 2px 6px;
   border-radius: 4px;
-  background: oklch(94% 0.02 230);
-  color: oklch(40% 0.13 235);
-  border: 1px solid oklch(86% 0.04 230);
+  background: #e8e2d9;
+  color: #1c4d5a;
+  border: 1px solid #b8d4dc;
 }
 
 /* Trust modal */
 .modal-scrim {
   position: fixed; inset: 0;
-  background: oklch(20% 0.01 60 / 0.32);
+  background: rgba(30, 31, 33, 0.32);
   backdrop-filter: blur(4px);
   display: grid; place-items: center;
   z-index: 100;
@@ -1429,8 +1429,8 @@ h1.display strong { font-weight: 600; }
   font-size: 12px; font-weight: 700;
   margin-top: 1px;
 }
-.trust-list li .ic.ok { background: var(--mint); color: oklch(36% 0.10 150); }
-.trust-list li .ic.alert { background: var(--gold-soft); color: oklch(40% 0.12 80); border: 1px solid var(--gold); }
+.trust-list li .ic.ok { background: var(--mint); color: #1c4d5a; }
+.trust-list li .ic.alert { background: var(--gold-soft); color: #9a8a3a; border: 1px solid var(--gold); }
 
 .trust-undo {
   margin-top: 20px;
