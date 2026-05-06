@@ -3,24 +3,273 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>No-Go AI · Harbor & Stone Demo</title>
-
+  <title>No-Go AI · The AI Business Engineer for SMBs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; }
 
-  <link rel="stylesheet" href="styles.css" />
+    body {
+      font-family: "Source Serif 4", Georgia, serif;
+      background: oklch(98.5% 0.005 100);
+      color: oklch(28% 0.02 240);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .landing {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    /* Brand */
+    .brand-mark {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: oklch(50% 0.13 235);
+      display: grid; place-items: center;
+      margin: 0 auto 24px;
+    }
+    .brand-mark::before {
+      content: "";
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: oklch(82% 0.10 95);
+      box-shadow: 0 0 0 4px oklch(99.5% 0.003 100) inset, 0 0 0 7px oklch(50% 0.13 235) inset;
+    }
+    .brand-name {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 48px;
+      color: oklch(28% 0.02 240);
+    }
+
+    /* Hero text */
+    .hero-tagline {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: oklch(50% 0.13 235);
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-size: 56px;
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      max-width: 700px;
+      margin: 0 auto 20px;
+    }
+    .hero-title strong {
+      font-weight: 600;
+    }
+    .hero-sub {
+      font-size: 20px;
+      font-weight: 300;
+      color: oklch(45% 0.02 240);
+      max-width: 520px;
+      margin: 0 auto 48px;
+      line-height: 1.5;
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      height: 56px;
+      padding: 0 32px;
+      border-radius: 14px;
+      border: 1px solid oklch(50% 0.13 235);
+      background: oklch(50% 0.13 235);
+      color: white;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 80ms, background 120ms;
+      text-decoration: none;
+    }
+    .btn:hover { background: oklch(45% 0.13 235); }
+    .btn:active { transform: translateY(1px); }
+    .btn.ghost {
+      background: transparent;
+      color: oklch(28% 0.02 240);
+      border-color: oklch(86% 0.012 130);
+    }
+    .btn.ghost:hover { background: oklch(96% 0.008 130); }
+
+    /* Password modal */
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: oklch(28% 0.02 240 / 0.30);
+      backdrop-filter: blur(4px);
+      display: grid; place-items: center;
+      z-index: 50;
+      animation: fadeup 180ms ease both;
+      padding: 24px;
+    }
+    .modal {
+      width: 400px; max-width: 100%;
+      background: oklch(99.5% 0.003 100);
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 24px 64px -16px oklch(28% 0.02 240 / 0.25);
+      text-align: center;
+    }
+    .modal h3 {
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: -0.015em;
+      margin-bottom: 8px;
+    }
+    .modal p {
+      font-size: 15px;
+      font-weight: 300;
+      color: oklch(45% 0.02 240);
+      margin-bottom: 24px;
+    }
+    .modal input {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      border: 1px solid oklch(86% 0.012 130);
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 400;
+      background: oklch(96% 0.008 130);
+      color: oklch(28% 0.02 240);
+      outline: none;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+    .modal input:focus { border-color: oklch(50% 0.13 235); }
+    .modal input::placeholder { color: oklch(60% 0.015 240); letter-spacing: 0; }
+    .modal .error {
+      font-size: 13px;
+      color: #e53935;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+    .modal .actions {
+      display: flex; gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .modal .btn { height: 48px; font-size: 15px; padding: 0 24px; }
+
+    /* Footer */
+    .footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 16px 24px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 300;
+      color: oklch(60% 0.015 240);
+    }
+
+    @keyframes fadeup {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      .hero-title { font-size: 36px; }
+      .hero-sub { font-size: 17px; }
+      .btn { height: 50px; padding: 0 24px; font-size: 15px; }
+      .modal { padding: 28px 24px; }
+    }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div class="landing" id="landing">
+    <div class="brand-mark"></div>
+    <div class="brand-name">No-Go AI</div>
 
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+    <div class="hero-tagline">The AI Business Engineer for SMBs</div>
+    <h1 class="hero-title">Your internal <strong>AI department.</strong></h1>
+    <p class="hero-sub">
+      No-Go AI finds the repetitive work in your business, builds safe automations, and proves the time it saved you — every month.
+    </p>
 
-  <script type="text/babel" src="data.jsx"></script>
-  <script type="text/babel" src="tweaks-panel.jsx"></script>
-  <script type="text/babel" src="components.jsx"></script>
-  <script type="text/babel" src="app.jsx"></script>
+    <div class="btn-row">
+      <a class="btn ghost" href="mailto:ori@no-go.ai">Contact us</a>
+      <button class="btn" id="demo-btn">Watch the demo
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+          <path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="footer">No-Go AI &middot; Built for small businesses that want to work smarter.</div>
+
+  <!-- Password modal -->
+  <div class="modal-bg" id="modal" style="display:none">
+    <div class="modal">
+      <h3>Enter password</h3>
+      <p>The demo is password-protected.</p>
+      <input type="password" id="pw" placeholder="Password" autofocus />
+      <div class="error" id="error"></div>
+      <div class="actions">
+        <button class="btn ghost" id="cancel-btn">Cancel</button>
+        <button class="btn" id="enter-btn">Enter</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PASS = "demoodem";
+    const modal = document.getElementById("modal");
+    const pw = document.getElementById("pw");
+    const error = document.getElementById("error");
+
+    document.getElementById("demo-btn").addEventListener("click", () => {
+      modal.style.display = "grid";
+      pw.value = "";
+      error.textContent = "";
+      setTimeout(() => pw.focus(), 100);
+    });
+
+    document.getElementById("cancel-btn").addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    });
+
+    function tryEnter() {
+      if (pw.value === PASS) {
+        window.location.href = "demo.html";
+      } else {
+        error.textContent = "Incorrect password. Try again.";
+        pw.value = "";
+        pw.focus();
+      }
+    }
+
+    document.getElementById("enter-btn").addEventListener("click", tryEnter);
+    pw.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") tryEnter();
+    });
+  </script>
 </body>
 </html>
