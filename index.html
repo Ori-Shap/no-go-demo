@@ -6,227 +6,349 @@
   <title>No-Go AI · The AI Business Engineer for SMBs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; }
-    html, body { height: 100%; }
-
+    html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
     body {
       font-family: "Source Serif 4", Georgia, serif;
-      background: oklch(98.5% 0.005 100);
-      color: oklch(28% 0.02 240);
+      background: #faf9f6;
+      color: #1a2332;
       -webkit-font-smoothing: antialiased;
+      font-size: 16px; line-height: 1.5;
+      overflow-x: hidden;
+    }
+    .snap { scroll-snap-align: start; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+    :root {
+      --ink: #1a2332; --ink-2: #4a5568; --ink-3: #8896a6;
+      --primary: #2b5ea7; --primary-hover: #234d8c;
+      --bg: #faf9f6; --bg-2: #f2f0ec; --paper: #fefefe;
+      --rule: #e8e5df;
+      --go: #3a8a6a; --go-soft: #edf7f2;
+      --gold: #c8a94e; --gold-soft: #fdf8eb;
     }
 
-    .landing {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 24px;
-      text-align: center;
+    /* Nav */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 32px; z-index: 40;
+      background: rgba(250,249,246,0.88);
+      backdrop-filter: blur(12px);
     }
-
-    /* Brand */
-    .brand-mark {
-      width: 56px; height: 56px;
-      border-radius: 16px;
-      background: oklch(50% 0.13 235);
-      display: grid; place-items: center;
-      margin: 0 auto 24px;
-    }
-    .brand-mark::before {
-      content: "";
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: oklch(82% 0.10 95);
-      box-shadow: 0 0 0 4px oklch(99.5% 0.003 100) inset, 0 0 0 7px oklch(50% 0.13 235) inset;
-    }
-    .brand-name {
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      margin-bottom: 48px;
-      color: oklch(28% 0.02 240);
-    }
-
-    /* Hero text */
-    .hero-tagline {
-      font-size: 16px;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: oklch(50% 0.13 235);
-      margin-bottom: 16px;
-    }
-    .hero-title {
-      font-size: 56px;
-      font-weight: 300;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      max-width: 700px;
-      margin: 0 auto 20px;
-    }
-    .hero-title strong {
-      font-weight: 600;
-    }
-    .hero-sub {
-      font-size: 20px;
-      font-weight: 300;
-      color: oklch(45% 0.02 240);
-      max-width: 520px;
-      margin: 0 auto 48px;
-      line-height: 1.5;
-    }
+    .nav-brand { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; text-decoration: none; color: var(--ink); }
+    .nav-mark { width: 28px; height: 28px; border-radius: 8px; background: var(--primary); display: grid; place-items: center; }
+    .nav-mark::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2.5px var(--paper) inset, 0 0 0 4px var(--primary) inset; }
+    .nav-links { display: flex; gap: 8px; }
 
     /* Buttons */
-    .btn-row {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .btn {
-      font-family: inherit;
-      font-size: 16px;
-      font-weight: 600;
-      height: 56px;
-      padding: 0 32px;
-      border-radius: 14px;
-      border: 1px solid oklch(50% 0.13 235);
-      background: oklch(50% 0.13 235);
-      color: white;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      transition: transform 80ms, background 120ms;
-      text-decoration: none;
-    }
-    .btn:hover { background: oklch(45% 0.13 235); }
+    .btn { font-family: inherit; font-size: 14px; font-weight: 600; height: 42px; padding: 0 22px; border-radius: 10px; border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: transform 80ms, background 120ms, opacity 120ms; text-decoration: none; }
+    .btn:hover { background: var(--primary-hover); }
     .btn:active { transform: translateY(1px); }
-    .btn.ghost {
-      background: transparent;
-      color: oklch(28% 0.02 240);
-      border-color: oklch(86% 0.012 130);
-    }
-    .btn.ghost:hover { background: oklch(96% 0.008 130); }
+    .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+    .btn.ghost:hover { background: var(--bg-2); }
+    .btn.lg { height: 52px; padding: 0 32px; font-size: 16px; border-radius: 13px; }
+    .btn.sm { height: 36px; padding: 0 16px; font-size: 13px; }
+    .arrow { transition: transform 160ms; }
+    .btn:hover .arrow { transform: translateX(3px); }
 
-    /* Password modal */
-    .modal-bg {
-      position: fixed; inset: 0;
-      background: oklch(28% 0.02 240 / 0.30);
-      backdrop-filter: blur(4px);
-      display: grid; place-items: center;
-      z-index: 50;
-      animation: fadeup 180ms ease both;
-      padding: 24px;
+    /* Reveal animation */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s cubic-bezier(0.2,0.8,0.2,1), transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal.faded { opacity: 0.08; transform: translateY(-12px); }
+    .reveal-d1 { transition-delay: 0.1s; }
+    .reveal-d2 { transition-delay: 0.2s; }
+    .reveal-d3 { transition-delay: 0.3s; }
+
+    /* Sections */
+    section { max-width: 960px; margin: 0 auto; padding: 0 32px; }
+
+    /* ===== Hero ===== */
+    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 60px; scroll-snap-align: start; }
+    .hero-tagline { font-size: 13px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--primary); margin-bottom: 16px; }
+    .hero-title { font-size: 60px; font-weight: 300; line-height: 1.06; letter-spacing: -0.03em; max-width: 720px; margin: 0 auto 20px; }
+    .hero-title strong { font-weight: 700; }
+    .hero-sub { font-size: 19px; font-weight: 300; color: var(--ink-2); max-width: 500px; margin: 0 auto 36px; line-height: 1.5; }
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .scroll-hint { margin-top: 48px; color: var(--ink-3); font-size: 12px; font-weight: 400; display: flex; flex-direction: column; align-items: center; gap: 6px; animation: float 2.5s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+
+    /* ===== Pipeline ===== */
+    .pipeline-section { padding: 40px 0 80px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
+    .pipeline-section .section-label { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; text-align: center; }
+    .pipeline-section .section-title { font-size: 36px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.12; margin-bottom: 48px; text-align: center; }
+    .pipeline-section .section-title strong { font-weight: 600; }
+
+    .pipeline-flow {
+      display: flex; align-items: flex-start; gap: 0;
+      position: relative;
     }
-    .modal {
-      width: 400px; max-width: 100%;
-      background: oklch(99.5% 0.003 100);
-      border-radius: 20px;
-      padding: 36px;
-      box-shadow: 0 24px 64px -16px oklch(28% 0.02 240 / 0.25);
-      text-align: center;
-    }
-    .modal h3 {
-      font-size: 24px;
-      font-weight: 400;
-      letter-spacing: -0.015em;
-      margin-bottom: 8px;
-    }
-    .modal p {
-      font-size: 15px;
-      font-weight: 300;
-      color: oklch(45% 0.02 240);
-      margin-bottom: 24px;
-    }
-    .modal input {
-      width: 100%;
-      height: 48px;
+    .pipeline-phase {
+      flex: 1; text-align: center; position: relative;
       padding: 0 16px;
-      border: 1px solid oklch(86% 0.012 130);
-      border-radius: 12px;
-      font-family: inherit;
-      font-size: 16px;
-      font-weight: 400;
-      background: oklch(96% 0.008 130);
-      color: oklch(28% 0.02 240);
-      outline: none;
-      text-align: center;
-      letter-spacing: 0.05em;
     }
-    .modal input:focus { border-color: oklch(50% 0.13 235); }
-    .modal input::placeholder { color: oklch(60% 0.015 240); letter-spacing: 0; }
-    .modal .error {
-      font-size: 13px;
-      color: #e53935;
-      margin-top: 8px;
-      min-height: 20px;
+    .pipeline-icon-wrap {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: grid; place-items: center;
+      margin: 0 auto 14px;
+      font-size: 24px;
     }
-    .modal .actions {
-      display: flex; gap: 10px;
-      justify-content: center;
-      margin-top: 20px;
+    .pipeline-icon-wrap.p1 { background: var(--go-soft); color: var(--go); }
+    .pipeline-icon-wrap.p2 { background: oklch(95% 0.04 230); color: var(--primary); }
+    .pipeline-icon-wrap.p3 { background: var(--gold-soft); color: var(--gold); }
+    .pipeline-phase h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+    .pipeline-phase p { font-size: 14px; font-weight: 300; color: var(--ink-2); line-height: 1.5; max-width: 260px; margin: 0 auto; }
+
+    /* Connector line */
+    .pipeline-connector {
+      width: 48px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding-top: 16px;
+      color: var(--rule);
     }
-    .modal .btn { height: 48px; font-size: 15px; padding: 0 24px; }
+    .pipeline-connector svg { display: block; }
+    .pipeline-connector.drawn { color: var(--primary); transition: color 0.8s ease 0.3s; }
+
+    /* Sub-steps */
+    .pipeline-steps {
+      display: flex; gap: 6px; justify-content: center;
+      margin-top: 12px; flex-wrap: wrap;
+    }
+    .pipeline-step-pill {
+      font-size: 11px; font-weight: 500; padding: 4px 10px;
+      border-radius: 999px; background: var(--bg-2); color: var(--ink-3);
+    }
+
+    /* ===== Numbers ===== */
+    .numbers-snap { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; padding: 0 32px; }
+    .numbers {
+      padding: 64px 0;
+      background: var(--ink); color: white;
+      border-radius: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .numbers-inner { max-width: 800px; margin: 0 auto; padding: 0 32px; text-align: center; }
+    .numbers .section-label { color: var(--gold); font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
+    .numbers .section-title { color: white; font-size: 32px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 44px; }
+    .numbers .section-title strong { font-weight: 600; }
+    .numbers-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; }
+    .num-val { font-size: 52px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; }
+    .num-val .unit { font-size: 26px; font-weight: 300; }
+    .num-label { font-size: 14px; font-weight: 300; color: #a0aab4; margin-top: 8px; }
+
+    /* ===== Trust ===== */
+    .trust { padding: 80px 0 48px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
+    .trust .section-label { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; }
+    .trust .section-title { font-size: 32px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 40px; }
+    .trust .section-title strong { font-weight: 600; }
+    .trust-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .trust-card { padding: 24px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; text-align: left; }
+    .trust-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 12px; }
+    .trust-icon.green { background: var(--go-soft); color: var(--go); }
+    .trust-icon.gold { background: var(--gold-soft); color: #9a8230; }
+    .trust-icon.blue { background: oklch(95% 0.04 230); color: var(--primary); }
+    .trust-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .trust-card p { font-size: 13px; font-weight: 300; color: var(--ink-2); line-height: 1.5; }
+
+    /* ===== Final CTA ===== */
+    .final-cta { padding: 56px 0 80px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
+    .final-cta .section-title { font-size: 32px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 28px; }
+    .final-cta .section-title strong { font-weight: 600; }
 
     /* Footer */
-    .footer {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      padding: 16px 24px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 300;
-      color: oklch(60% 0.015 240);
-    }
+    .footer { padding: 24px 32px; text-align: center; font-size: 12px; font-weight: 300; color: var(--ink-3); border-top: 1px solid var(--rule); }
 
-    @keyframes fadeup {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* Modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(26,35,50,0.30); backdrop-filter: blur(4px); display: grid; place-items: center; z-index: 50; animation: fadeup 180ms ease both; padding: 24px; }
+    .modal { width: 380px; max-width: 100%; background: var(--paper); border-radius: 18px; padding: 32px; box-shadow: 0 24px 64px -16px rgba(26,35,50,0.25); text-align: center; }
+    .modal h3 { font-size: 22px; font-weight: 400; letter-spacing: -0.015em; margin-bottom: 6px; }
+    .modal p { font-size: 14px; font-weight: 300; color: var(--ink-2); margin-bottom: 20px; }
+    .modal input { width: 100%; height: 44px; padding: 0 14px; border: 1px solid var(--rule); border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 400; background: var(--bg-2); color: var(--ink); outline: none; text-align: center; letter-spacing: 0.04em; }
+    .modal input:focus { border-color: var(--primary); }
+    .modal input::placeholder { color: var(--ink-3); letter-spacing: 0; }
+    .modal .error { font-size: 12px; color: #e53935; margin-top: 6px; min-height: 18px; }
+    .modal .actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+
+    @keyframes fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Counter animation */
+    .num-val[data-to] { font-variant-numeric: tabular-nums; }
 
     /* Mobile */
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
+      .nav { padding: 10px 16px; }
+      section { padding-left: 16px; padding-right: 16px; }
       .hero-title { font-size: 36px; }
-      .hero-sub { font-size: 17px; }
-      .btn { height: 50px; padding: 0 24px; font-size: 15px; }
-      .modal { padding: 28px 24px; }
+      .hero-sub { font-size: 16px; }
+      .pipeline-flow { flex-direction: column; align-items: center; gap: 20px; }
+      .pipeline-connector { width: auto; height: 32px; padding-top: 0; transform: rotate(90deg); }
+      .pipeline-section .section-title { font-size: 28px; }
+      .numbers-snap { padding: 0 16px; }
+      .numbers { padding: 48px 0; }
+      .numbers-grid { grid-template-columns: 1fr; gap: 24px; }
+      .numbers .section-title { font-size: 26px; }
+      .num-val { font-size: 40px; }
+      .trust-grid { grid-template-columns: 1fr; }
+      .trust .section-title { font-size: 26px; }
+      .final-cta .section-title { font-size: 26px; }
+      .scroll-hint { display: none; }
+    }
+    @media (max-width: 480px) {
+      .hero-title { font-size: 28px; }
+      .pipeline-phase h3 { font-size: 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="landing" id="landing">
-    <div class="brand-mark"></div>
-    <div class="brand-name">No-Go AI</div>
 
-    <div class="hero-tagline">The AI Business Engineer for SMBs</div>
-    <h1 class="hero-title">Your internal <strong>AI department.</strong></h1>
-    <p class="hero-sub">
-      No-Go AI finds the repetitive work in your business, builds safe automations, and proves the time it saved you — every month.
-    </p>
+  <!-- Nav -->
+  <nav class="nav">
+    <a href="#" class="nav-brand"><span class="nav-mark"></span> No-Go AI</a>
+    <div class="nav-links">
+      <a class="btn ghost sm" href="mailto:ori@no-go.ai">Contact</a>
+      <button class="btn sm" id="nav-demo-btn">See the demo</button>
+    </div>
+  </nav>
 
-    <div class="btn-row">
-      <a class="btn ghost" href="mailto:ori@no-go.ai">Contact us</a>
-      <button class="btn" id="demo-btn">Watch the demo
-        <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-          <path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-tagline reveal">The AI Business Engineer for SMBs</div>
+    <h1 class="hero-title reveal reveal-d1">Stop doing work <strong>AI should do.</strong></h1>
+    <p class="hero-sub reveal reveal-d2">No-Go AI finds repetitive work, automates it safely, and proves the time it saved you — every month.</p>
+    <div class="btn-row reveal reveal-d3">
+      <button class="btn lg" id="hero-demo-btn">See it in action
+        <svg class="arrow" width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
+      <a class="btn ghost lg" href="mailto:ori@no-go.ai">Get in touch</a>
+    </div>
+    <div class="scroll-hint">
+      <svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1l6 6 6-6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </section>
+
+  <!-- Pipeline: Discover → Automate → Run -->
+  <section class="pipeline-section" id="how">
+    <div class="section-label reveal">One agent, full lifecycle</div>
+    <h2 class="section-title reveal">Discover. Automate. <strong>Run.</strong></h2>
+    <div class="pipeline-flow">
+      <div class="pipeline-phase reveal">
+        <div class="pipeline-icon-wrap p1">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </div>
+        <h3>Discover</h3>
+        <p>Connects to your apps, scans 90 days of data, finds the work that's eating your time.</p>
+        <div class="pipeline-steps">
+          <span class="pipeline-step-pill">Connect apps</span>
+          <span class="pipeline-step-pill">Scan data</span>
+          <span class="pipeline-step-pill">Rank work</span>
+        </div>
+      </div>
+      <div class="pipeline-connector reveal reveal-d1" id="conn1">
+        <svg width="32" height="12" viewBox="0 0 32 12" fill="none"><path d="M1 6h29M25 1l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="pipeline-phase reveal reveal-d1">
+        <div class="pipeline-icon-wrap p2">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <h3>Automate</h3>
+        <p>Builds the workflow, tests it against real scenarios, only deploys when it's safe.</p>
+        <div class="pipeline-steps">
+          <span class="pipeline-step-pill">Build</span>
+          <span class="pipeline-step-pill">Test</span>
+          <span class="pipeline-step-pill">Simulate</span>
+        </div>
+      </div>
+      <div class="pipeline-connector reveal reveal-d2" id="conn2">
+        <svg width="32" height="12" viewBox="0 0 32 12" fill="none"><path d="M1 6h29M25 1l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="pipeline-phase reveal reveal-d2">
+        <div class="pipeline-icon-wrap p3">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h3>Run & Improve</h3>
+        <p>Handles work daily, learns from exceptions, proves ROI every month.</p>
+        <div class="pipeline-steps">
+          <span class="pipeline-step-pill">Execute</span>
+          <span class="pipeline-step-pill">Monitor</span>
+          <span class="pipeline-step-pill">Learn</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Numbers -->
+  <div class="numbers-snap">
+  <div class="numbers reveal">
+    <div class="numbers-inner">
+      <div class="section-label">First month results</div>
+      <h2 class="section-title">Proof, not <strong>promises.</strong></h2>
+      <div class="numbers-grid">
+        <div>
+          <div class="num-val" data-to="94">0<span class="unit">x</span></div>
+          <div class="num-label">tasks automated per month</div>
+        </div>
+        <div>
+          <div class="num-val" data-to="31">0<span class="unit">h</span></div>
+          <div class="num-label">hours saved — almost a full work week</div>
+        </div>
+        <div>
+          <div class="num-val" data-prefix="$" data-to="92">$0<span class="unit">k</span></div>
+          <div class="num-label">collected faster with AI reminders</div>
+        </div>
+      </div>
     </div>
   </div>
+  </div>
 
-  <div class="footer">No-Go AI &middot; Built for small businesses that want to work smarter.</div>
+  <!-- Trust -->
+  <section class="trust">
+    <div class="section-label reveal">Built on trust</div>
+    <h2 class="section-title reveal">You're always <strong>in control.</strong></h2>
+    <div class="trust-grid">
+      <div class="trust-card reveal">
+        <div class="trust-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <h3>Human approval is the default</h3>
+        <p>Nothing gets sent without you clicking approve. No-Go AI asks first — always.</p>
+      </div>
+      <div class="trust-card reveal reveal-d1">
+        <div class="trust-icon gold">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <h3>Flags unusual situations</h3>
+        <p>Payment plans, disputes, hardship cases — it pauses and asks you what to do.</p>
+      </div>
+      <div class="trust-card reveal reveal-d2">
+        <div class="trust-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        </div>
+        <h3>Proves it every month</h3>
+        <p>Tasks done, hours saved, dollars collected. An AI Savings Statement you can show your team.</p>
+      </div>
+    </div>
+  </section>
 
-  <!-- Password modal -->
+  <!-- Final CTA -->
+  <section class="final-cta reveal">
+    <h2 class="section-title">Ready to see <strong>what it does?</strong></h2>
+    <div class="btn-row">
+      <button class="btn lg" id="final-demo-btn">Watch the demo
+        <svg class="arrow" width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <a class="btn ghost lg" href="mailto:ori@no-go.ai">Contact us</a>
+    </div>
+  </section>
+
+  <div class="footer">No-Go AI &middot; The AI Business Engineer for SMBs</div>
+
+  <!-- Modal -->
   <div class="modal-bg" id="modal" style="display:none">
     <div class="modal">
       <h3>Enter password</h3>
       <p>The demo is password-protected.</p>
-      <input type="password" id="pw" placeholder="Password" autofocus />
+      <input type="password" id="pw" placeholder="Password" />
       <div class="error" id="error"></div>
       <div class="actions">
         <button class="btn ghost" id="cancel-btn">Cancel</button>
@@ -236,40 +358,67 @@
   </div>
 
   <script>
+    // Scroll reveal + fade out
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add("visible");
+          e.target.classList.remove("faded");
+        } else if (e.target.classList.contains("visible")) {
+          // Only fade if scrolled past (above viewport)
+          const r = e.boundingClientRect;
+          if (r.bottom < 0) e.target.classList.add("faded");
+        }
+      });
+    }, { threshold: 0 });
+    document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+
+    // Connector line draw on scroll
+    const connObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add("drawn"); connObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll(".pipeline-connector").forEach(el => connObs.observe(el));
+
+    // Counter animation for numbers
+    const numObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        const to = parseInt(el.dataset.to);
+        const prefix = el.dataset.prefix || "";
+        const unit = el.querySelector(".unit");
+        const unitHtml = unit ? unit.outerHTML : "";
+        let start = performance.now();
+        const dur = 1200;
+        function tick(t) {
+          const p = Math.min(1, (t - start) / dur);
+          const ease = 1 - Math.pow(1 - p, 3);
+          const v = Math.round(to * ease);
+          el.innerHTML = prefix + v + unitHtml;
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+        numObs.unobserve(el);
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll(".num-val[data-to]").forEach(el => numObs.observe(el));
+
+    // Password modal
     const PASS = "demoodem";
     const modal = document.getElementById("modal");
     const pw = document.getElementById("pw");
     const error = document.getElementById("error");
-
-    document.getElementById("demo-btn").addEventListener("click", () => {
-      modal.style.display = "grid";
-      pw.value = "";
-      error.textContent = "";
-      setTimeout(() => pw.focus(), 100);
-    });
-
-    document.getElementById("cancel-btn").addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) modal.style.display = "none";
-    });
-
-    function tryEnter() {
-      if (pw.value === PASS) {
-        window.location.href = "demo.html";
-      } else {
-        error.textContent = "Incorrect password. Try again.";
-        pw.value = "";
-        pw.focus();
-      }
-    }
-
+    function openModal() { modal.style.display = "grid"; pw.value = ""; error.textContent = ""; setTimeout(() => pw.focus(), 100); }
+    document.getElementById("hero-demo-btn").addEventListener("click", openModal);
+    document.getElementById("nav-demo-btn").addEventListener("click", openModal);
+    document.getElementById("final-demo-btn").addEventListener("click", openModal);
+    document.getElementById("cancel-btn").addEventListener("click", () => modal.style.display = "none");
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+    function tryEnter() { if (pw.value === PASS) { window.location.href = "demo.html"; } else { error.textContent = "Incorrect password."; pw.value = ""; pw.focus(); } }
     document.getElementById("enter-btn").addEventListener("click", tryEnter);
-    pw.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") tryEnter();
-    });
+    pw.addEventListener("keydown", (e) => { if (e.key === "Enter") tryEnter(); });
   </script>
 </body>
 </html>
