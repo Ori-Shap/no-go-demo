@@ -957,7 +957,7 @@ function CountUp({ to, prefix = "", suffix = "", decimals = 0, dur = 1100 }) {
 
 /* ===== Running ===== */
 /* RunningCard — one per deployed workflow */
-function RunningCard({ workflowId }) {
+function RunningCard({ workflowId, onOpenWhatsApp }) {
   const meta = WORKFLOW_RUNNING_META[workflowId] || WORKFLOW_RUNNING_META.rent;
   const wfSteps = WORKFLOW_STEPS[workflowId] || WORKFLOW_STEPS.rent;
   const wfReplies = WORKFLOW_REPLIES_MAP[workflowId] || WORKFLOW_REPLIES_MAP.rent;
@@ -1056,6 +1056,11 @@ function RunningCard({ workflowId }) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
           )}
         </button>
+        <button className="running-icon-btn wa" onClick={onOpenWhatsApp} title="Open in WhatsApp">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.47 14.38c-.29-.15-1.7-.84-1.96-.93-.27-.1-.46-.15-.65.15-.2.29-.75.93-.92 1.13-.17.2-.34.22-.63.07-.29-.15-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.6.13-.13.29-.34.44-.51.15-.17.2-.29.29-.49.1-.2.05-.37-.02-.51-.07-.15-.65-1.56-.89-2.14-.24-.56-.48-.49-.65-.49-.17 0-.37-.02-.56-.02-.2 0-.51.07-.78.37-.27.29-1.02 1-1.02 2.44 0 1.44 1.05 2.83 1.2 3.02.15.2 2.06 3.15 5 4.42.7.3 1.24.48 1.67.62.7.22 1.34.19 1.84.12.56-.08 1.7-.7 1.94-1.37.24-.68.24-1.26.17-1.38-.07-.12-.27-.2-.56-.34zM12.05 21.5c-1.8 0-3.55-.48-5.1-1.4l-.36-.22-3.78 1 1.02-3.7-.24-.38A9.4 9.4 0 012.5 12.04C2.5 6.78 6.78 2.5 12.05 2.5c2.56 0 4.97 1 6.78 2.82a9.5 9.5 0 012.81 6.78c0 5.27-4.28 9.55-9.55 9.55L12.05 21.5zM12.05.5C5.67.5.5 5.67.5 12.04c0 2.03.53 4.02 1.54 5.77L.5 23.5l5.83-1.53A11.48 11.48 0 0012.05 23.5c6.37 0 11.55-5.18 11.55-11.55S18.42.5 12.05.5z"/>
+          </svg>
+        </button>
       </div>
 
       {editing && (
@@ -1096,7 +1101,7 @@ function RunningCard({ workflowId }) {
 }
 
 /* ===== Running page ===== */
-function Running({ deployed, onBackToRecommend }) {
+function Running({ deployed, onBackToRecommend, onOpenWhatsApp }) {
   return (
     <div className="fade-in">
       <div className="greeting">Workflows are live</div>
@@ -1106,7 +1111,7 @@ function Running({ deployed, onBackToRecommend }) {
       </p>
 
       <div className="running-cards">
-        {deployed.map(id => <RunningCard key={id} workflowId={id} />)}
+        {deployed.map(id => <RunningCard key={id} workflowId={id} onOpenWhatsApp={onOpenWhatsApp} />)}
       </div>
 
       {/* Back to recommend */}

@@ -51,8 +51,6 @@ function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
-  const [waPopup, setWaPopup] = useAppState(null);
-
   const stepFromScreen = {
     connect: "connect",
     recommend: "recommend", setup: "deploy",
@@ -76,22 +74,19 @@ function App() {
   function onDeployAll(ids) {
     setDeployed(d => [...d, ...ids.filter(id => !d.includes(id))]);
     done("deploy");
-
-    // Open WhatsApp popup only on first deploy
-    if (deployed.length === 0) {
-      const w = 440, h = 720;
-      const left = window.screenX + window.outerWidth - w - 40;
-      const top = window.screenY + 60;
-      const popup = window.open(
-        "whatsapp/index.html",
-        "whatsapp-demo",
-        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`
-      );
-      setWaPopup(popup);
-    }
-
     setScreen("running");
     window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
+  function openWhatsApp() {
+    const w = 440, h = 720;
+    const left = window.screenX + window.outerWidth - w - 40;
+    const top = window.screenY + 60;
+    window.open(
+      "whatsapp/index.html",
+      "whatsapp-demo",
+      `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`
+    );
   }
 
   let view;
@@ -99,7 +94,7 @@ function App() {
     case "connect": view = <Connect onDone={() => go("recommend", "connect")} connectAllTrigger={connectAllTrigger} autoAdvance={t.autoAdvance} connected={connected} setConnected={setConnected} />; break;
     case "recommend": view = <Recommend onSetup={onStartSetup} deployed={deployed} />; break;
     case "setup": view = <Setup workflowIds={selectedWorkflows} onDeployAll={onDeployAll} />; break;
-    case "running": view = <Running deployed={deployed} onBackToRecommend={() => go("recommend")} />; break;
+    case "running": view = <Running deployed={deployed} onBackToRecommend={() => go("recommend")} onOpenWhatsApp={openWhatsApp} />; break;
     default: view = null;
   }
 

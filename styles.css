@@ -1229,6 +1229,15 @@ h1.display strong { font-weight: 600; }
   color: var(--ink);
   border-color: var(--ink-3);
 }
+.running-icon-btn.wa {
+  color: #25d366;
+  border-color: #25d366;
+}
+.running-icon-btn.wa:hover {
+  background: #25d366;
+  color: #fff;
+  border-color: #25d366;
+}
 .running-edit {
   margin-top: 18px;
   padding-top: 18px;
