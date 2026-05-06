@@ -394,7 +394,7 @@ function Recommend({ onSetup, deployed }) {
 
       {selectedCount > 0 && (
         <div className="cta-center">
-          <button className="btn lg" onClick={onSetup}>
+          <button className="btn lg" onClick={() => onSetup(Object.keys(selected).filter(k => selected[k]))}>
             Hand over {selectedCount} {selectedCount === 1 ? "task" : "tasks"} <Arrow />
           </button>
         </div>
@@ -403,18 +403,19 @@ function Recommend({ onSetup, deployed }) {
   );
 }
 
-/* ===== 4. Setup ===== */
-function Setup({ onReady }) {
-  const [workflow, setWorkflow] = useState(HOW_IT_WORKS.map(s => ({ ...s })));
+/* ===== 4. Setup (multi-workflow) ===== */
+function SetupWorkflowPanel({ workflowId }) {
+  const wfSteps = WORKFLOW_STEPS[workflowId] || WORKFLOW_STEPS.rent;
+  const wfReplies = WORKFLOW_REPLIES_MAP[workflowId] || WORKFLOW_REPLIES_MAP.rent;
+  const wfInfo = FOUND_LOOPS.find(l => l.id === workflowId) || FOUND_LOOPS[0];
+
+  const [workflow, setWorkflow] = useState(wfSteps.map(s => ({ ...s })));
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [phase, setPhase] = useState("edit"); // "edit" | "pipeline" | "results"
-  const [pipelineStage, setPipelineStage] = useState(0); // 0, 1, 2, 3(done)
-  const [showFailures, setShowFailures] = useState(false);
   const [expandedStep, setExpandedStep] = useState(null);
-
   const chatEndRef = React.useRef(null);
+
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, typing]);
 
   function sendMessage() {
@@ -423,22 +424,16 @@ function Setup({ onReady }) {
     setInput("");
     setMessages(m => [...m, { from: "user", text }]);
     setTyping(true);
-
     const lower = text.toLowerCase();
-    const match = WORKFLOW_REPLIES.find(r => r.keywords.some(k => lower.includes(k)));
-
+    const match = wfReplies.find(r => r.keywords.some(k => lower.includes(k)));
     setTimeout(() => {
       const reply = match ? match.text : WORKFLOW_DEFAULT_REPLY;
       setMessages(m => [...m, { from: "ai", text: reply }]);
       if (match) {
         setWorkflow(wf => {
           const next = [...wf];
-          if (match.change) {
-            next[match.change.idx] = { ...next[match.change.idx], label: match.change.label, detail: match.change.detail };
-          }
-          if (match.add) {
-            next.push(match.add);
-          }
+          if (match.change) next[match.change.idx] = { ...next[match.change.idx], label: match.change.label, detail: match.change.detail };
+          if (match.add) next.push(match.add);
           return next;
         });
       }
@@ -446,26 +441,10 @@ function Setup({ onReady }) {
     }, 800 + Math.random() * 600);
   }
 
-  const PIPELINE = ["Build", "Test", "Simulate"];
-
-  function startPipeline() {
-    setPhase("pipeline");
-    setPipelineStage(0);
-    setTimeout(() => setPipelineStage(1), 1400);
-    setTimeout(() => setPipelineStage(2), 2800);
-    setTimeout(() => { setPipelineStage(3); setTimeout(() => setPhase("results"), 600); }, 4200);
-  }
-
   return (
-    <div className="fade-in">
-      <div className="greeting">Setting up your workflow</div>
-      <h1 className="display">Here's <strong>the workflow.</strong></h1>
-      <p className="lede">
-        Tap a step to see details. Type below to tweak it.
-      </p>
-
-      {/* Workflow steps */}
-      <div className="steps-friendly">
+    <div>
+      <h3 style={{ fontSize: 20, fontWeight: 400, marginBottom: 12 }}>{wfInfo.title}</h3>
+      <div className="steps-friendly" style={{ marginTop: 0 }}>
         {workflow.map((s, i) => (
           <div className="sf-row" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
             <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
@@ -476,111 +455,254 @@ function Setup({ onReady }) {
           </div>
         ))}
       </div>
-
-      {/* Chat */}
-      {phase === "edit" && (
-        <>
-          {messages.length > 0 && (
-            <div className="setup-chat" style={{ marginTop: 16 }}>
-              <div className="setup-chat-body">
-                {messages.map((m, i) => (
-                  <div key={i} className={"bubble " + (m.from === "ai" ? "ai" : "draft")} style={m.from === "user" ? { alignSelf: "flex-end" } : {}}>
-                    {m.text}
-                  </div>
-                ))}
-                {typing && (
-                  <div className="bubble ai" style={{ color: "var(--ink-3)" }}>Thinking…</div>
-                )}
-                <div ref={chatEndRef} />
+      {messages.length > 0 && (
+        <div className="setup-chat" style={{ marginTop: 12 }}>
+          <div className="setup-chat-body">
+            {messages.map((m, i) => (
+              <div key={i} className={"bubble " + (m.from === "ai" ? "ai" : "draft")} style={m.from === "user" ? { alignSelf: "flex-end" } : {}}>
+                {m.text}
               </div>
-            </div>
-          )}
-          <div className="setup-chat-standalone">
-            <input
-              type="text"
-              placeholder="Change anything — tone, timing, escalation…"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && sendMessage()}
-              disabled={typing}
-            />
-            <button className="btn sm" onClick={sendMessage} disabled={!input.trim() || typing}>Send</button>
+            ))}
+            {typing && <div className="bubble ai" style={{ color: "var(--ink-3)" }}>Thinking…</div>}
+            <div ref={chatEndRef} />
           </div>
-
-          <div className="cta-center">
-            <button className="btn lg" onClick={startPipeline}>
-              Approve <Arrow />
-            </button>
-          </div>
-        </>
+        </div>
       )}
+      <div className="setup-chat-standalone" style={{ marginTop: 12 }}>
+        <input type="text" placeholder="Adjust this workflow…" value={input}
+          onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} disabled={typing} />
+        <button className="btn sm" onClick={sendMessage} disabled={!input.trim() || typing}>Send</button>
+      </div>
+    </div>
+  );
+}
 
-      {/* Pipeline stepper */}
-      {phase === "pipeline" && (
-        <div className="pipeline-stepper fade-in" style={{ marginTop: 28 }}>
-          {PIPELINE.map((label, i) => {
-            const isDone = pipelineStage > i;
-            const isActive = pipelineStage === i;
+function Setup({ workflowIds, onDeployAll }) {
+  const [activeTab, setActiveTab] = useState(0);
+  const [approved, setApproved] = useState({});  // { id: true }
+  const [phase, setPhase] = useState("edit");    // "edit" | "deploying" | "results"
+  const [pipelineStages, setPipelineStages] = useState({}); // { id: 0-3 }
+  const [pipelinePass, setPipelinePass] = useState({});     // { id: 1 | 2 } — which pass
+  const [pipelineStatus, setPipelineStatus] = useState({}); // { id: "running" | "failed" | "passed" }
+  const [showFailures, setShowFailures] = useState({});
+
+  const PIPELINE = ["Build", "Test", "Simulate"];
+  const approvedIds = workflowIds.filter(id => approved[id]);
+  const approvedCount = approvedIds.length;
+
+  function toggleApprove(id) {
+    setApproved(a => ({ ...a, [id]: !a[id] }));
+  }
+
+  function runPipelineForId(id, pass, baseOffset) {
+    setPipelinePass(p => ({ ...p, [id]: pass }));
+    setPipelineStatus(s => ({ ...s, [id]: "running" }));
+    setPipelineStages(s => ({ ...s, [id]: 0 }));
+
+    setTimeout(() => setPipelineStages(s => ({ ...s, [id]: 1 })), 1400 + baseOffset);
+    setTimeout(() => setPipelineStages(s => ({ ...s, [id]: 2 })), 2800 + baseOffset);
+    setTimeout(() => {
+      setPipelineStages(s => ({ ...s, [id]: 3 }));
+
+      // Check sim result
+      const sim = SIM_RESULTS_MAP[id];
+      const scoreForPass = (pass === 1 && sim && sim.pass1) ? sim.pass1.score : sim.score;
+
+      setTimeout(() => {
+        if (scoreForPass < 90 && pass === 1) {
+          // Failed — mark as failed briefly, then re-run
+          setPipelineStatus(s => ({ ...s, [id]: "failed" }));
+          setTimeout(() => {
+            runPipelineForId(id, 2, 0);
+          }, 1500);
+        } else {
+          setPipelineStatus(s => ({ ...s, [id]: "passed" }));
+        }
+      }, 500);
+    }, 4200 + baseOffset);
+  }
+
+  function deploy() {
+    setPhase("deploying");
+    const ids = approvedIds;
+    ids.forEach((id, idx) => {
+      runPipelineForId(id, 1, idx * 400);
+    });
+  }
+
+  // Check if all pipelines finished
+  const allPipelinesFinished = phase === "deploying" &&
+    approvedIds.length > 0 &&
+    approvedIds.every(id => pipelineStatus[id] === "passed");
+
+  useEffect(() => {
+    if (allPipelinesFinished) {
+      setTimeout(() => setPhase("results"), 600);
+    }
+  }, [pipelineStatus]);
+
+  const currentId = workflowIds[activeTab];
+
+  return (
+    <div className="fade-in">
+      <div className="greeting">Setting up {workflowIds.length} workflow{workflowIds.length > 1 ? "s" : ""}</div>
+      <h1 className="display">Review and <strong>approve.</strong></h1>
+      <p className="lede">
+        Approve each workflow, then deploy. Unapproved workflows stay for later.
+      </p>
+
+      {/* Tabs */}
+      {workflowIds.length > 1 && phase === "edit" && (
+        <div className="setup-tabs">
+          {workflowIds.map((id, i) => {
+            const info = FOUND_LOOPS.find(l => l.id === id) || FOUND_LOOPS[0];
             return (
-              <React.Fragment key={i}>
-                {i > 0 && (
-                  <div className={"pipeline-arrow" + (pipelineStage > i ? " done" : "")}>
-                    <svg width="24" height="14" viewBox="0 0 24 14" fill="none">
-                      <path d="M1 7h21M17 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                )}
-                <div className={"pipeline-step" + (isDone ? " done" : isActive ? " active" : "")}>
-                  <div className="pipeline-step-icon">
-                    {isDone ? "✓" : isActive ? <span className="spinner" /> : ""}
-                  </div>
-                  <div className="pipeline-step-label">{label}</div>
-                </div>
-              </React.Fragment>
+              <button key={id} className={"setup-tab" + (activeTab === i ? " active" : "") + (approved[id] ? " done" : "")}
+                onClick={() => setActiveTab(i)}>
+                {approved[id] && <span style={{ color: "var(--go)", marginRight: 6 }}>✓</span>}
+                {info.title}
+              </button>
             );
           })}
         </div>
       )}
 
-      {/* Results */}
-      {phase === "results" && (
-        <div className="fade-in" style={{ marginTop: 28 }}>
-          <div className="sim-result">
-            <div className="sim-result-top">
-              <span className="pill go" style={{ height: 30, fontSize: 14 }}><span className="dot" /> Safe to deploy</span>
-            </div>
-            <div className="sim-result-score serif tabular">{SIM_RESULTS.score}%<small> success rate</small></div>
-            <div className="sim-result-counts">
-              <span><strong>{SIM_RESULTS.total}</strong> scenarios tested</span>
-              <span style={{ color: "var(--go)" }}><strong>{SIM_RESULTS.passed}</strong> passed</span>
-              <span style={{ color: "var(--wait)" }}><strong>{SIM_RESULTS.failed}</strong> failed</span>
-            </div>
-          </div>
-
-          <div
-            onClick={() => setShowFailures(o => !o)}
-            style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginTop: 14, fontSize: 14, color: "var(--ink-2)" }}
-          >
-            <span>{SIM_RESULTS.failed} failed scenario{SIM_RESULTS.failed === 1 ? "" : "s"}</span>
-            <span style={{ fontSize: 12, color: "var(--ink-3)", transition: "transform 200ms", transform: showFailures ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
-          </div>
-          {showFailures && (
-            <div className="fail-list fade-in" style={{ marginTop: 8 }}>
-              {SIM_RESULTS.failures.map((f, i) => (
-                <div className="fail-row" key={i}>
-                  <div className="fail-tenant">{f.tenant}</div>
-                  <div className="fail-reason">{f.reason}</div>
-                  <div className="fail-suggestion">{f.suggestion}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="cta-center">
-            <button className="btn lg" onClick={onReady}>
-              Deploy <Arrow />
+      {/* Edit phase — workflow panel + approve toggle */}
+      {phase === "edit" && (
+        <div style={{ marginTop: 20 }}>
+          <SetupWorkflowPanel key={currentId} workflowId={currentId} />
+          <div style={{ textAlign: "center", marginTop: 20 }}>
+            <button
+              className={"btn " + (approved[currentId] ? "ghost" : "")}
+              onClick={() => toggleApprove(currentId)}
+            >
+              {approved[currentId] ? "Revoke approval" : "Approve"}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Deploying — parallel pipelines with retry */}
+      {phase === "deploying" && (
+        <div className="fade-in" style={{ marginTop: 28 }}>
+          {approvedIds.map(id => {
+            const info = FOUND_LOOPS.find(l => l.id === id) || FOUND_LOOPS[0];
+            const stage = pipelineStages[id] || 0;
+            const pass = pipelinePass[id] || 1;
+            const status = pipelineStatus[id];
+            return (
+              <div key={id} style={{ marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>{info.title}</span>
+                  {pass > 1 && status === "running" && (
+                    <span className="pill wait" style={{ height: 22, fontSize: 11 }}><span className="dot" /> Retry — pass {pass}</span>
+                  )}
+                  {status === "failed" && (
+                    <span className="pill wait" style={{ height: 22, fontSize: 11 }}><span className="dot" /> Below 90% — retrying…</span>
+                  )}
+                  {status === "passed" && (
+                    <span className="pill go" style={{ height: 22, fontSize: 11 }}><span className="dot" /> Passed{pass > 1 ? ` (pass ${pass})` : ""}</span>
+                  )}
+                </div>
+                <div className="pipeline-stepper" style={{ marginTop: 0 }}>
+                  {PIPELINE.map((label, i) => {
+                    const isDone = stage > i;
+                    const isActive = stage === i && status === "running";
+                    return (
+                      <React.Fragment key={i}>
+                        {i > 0 && (
+                          <div className={"pipeline-arrow" + (isDone ? " done" : "")}>
+                            <svg width="24" height="14" viewBox="0 0 24 14" fill="none">
+                              <path d="M1 7h21M17 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        )}
+                        <div className={"pipeline-step" + (isDone && status !== "failed" ? " done" : isDone && status === "failed" ? " failed" : isActive ? " active" : "")}>
+                          <div className="pipeline-step-icon">
+                            {isDone && status !== "failed" ? "✓" : isDone && status === "failed" ? "!" : isActive ? <span className="spinner" /> : ""}
+                          </div>
+                          <div className="pipeline-step-label">{label}</div>
+                        </div>
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Results — per workflow */}
+      {phase === "results" && (
+        <div className="fade-in" style={{ marginTop: 28 }}>
+          {approvedIds.map(id => {
+            const info = FOUND_LOOPS.find(l => l.id === id) || FOUND_LOOPS[0];
+            const simRaw = SIM_RESULTS_MAP[id] || SIM_RESULTS_MAP.rent;
+            const pass = pipelinePass[id] || 1;
+            const sim = simRaw; // final pass data (score, total, passed, failed, failures)
+            const hadRetry = pass > 1 && simRaw.pass1;
+            const failOpen = !!showFailures[id];
+            return (
+              <div key={id} style={{ marginBottom: 24 }}>
+                <div className="sim-result">
+                  <div className="sim-result-top" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 16, fontWeight: 500 }}>{info.title}</span>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      {hadRetry && (
+                        <span className="pill" style={{ height: 22, fontSize: 11, background: "var(--gold-soft)", color: "var(--wait)" }}>
+                          1st pass: {simRaw.pass1.score}%
+                        </span>
+                      )}
+                      <span className="pill go" style={{ height: 26, fontSize: 12 }}><span className="dot" /> Safe{hadRetry ? " (after retry)" : ""}</span>
+                    </div>
+                  </div>
+                  <div className="sim-result-score serif tabular">{sim.score}%<small> success rate</small></div>
+                  <div className="sim-result-counts">
+                    <span><strong>{sim.total}</strong> tested</span>
+                    <span style={{ color: "var(--go)" }}><strong>{sim.passed}</strong> passed</span>
+                    <span style={{ color: "var(--wait)" }}><strong>{sim.failed}</strong> failed</span>
+                  </div>
+                </div>
+                <div onClick={() => setShowFailures(s => ({ ...s, [id]: !s[id] }))}
+                  style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginTop: 10, fontSize: 13, color: "var(--ink-2)" }}>
+                  <span>{sim.failed} failed</span>
+                  <span style={{ fontSize: 11, color: "var(--ink-3)", transition: "transform 200ms", transform: failOpen ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
+                </div>
+                {failOpen && (
+                  <div className="fail-list fade-in" style={{ marginTop: 6 }}>
+                    {sim.failures.map((f, i) => (
+                      <div className="fail-row" key={i}>
+                        <div className="fail-tenant">{f.tenant}</div>
+                        <div className="fail-reason">{f.reason}</div>
+                        <div className="fail-suggestion">{f.suggestion}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="cta-center">
+            <button className="btn lg" onClick={() => onDeployAll(approvedIds)}>
+              Deploy {approvedIds.length > 1 ? `all ${approvedIds.length}` : ""} <Arrow />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Deploy button — always visible during edit, disabled until 1+ approved */}
+      {phase === "edit" && (
+        <div className="cta-center" style={{ marginTop: 28 }}>
+          <button className="btn lg" disabled={approvedCount === 0} onClick={deploy}>
+            Deploy {approvedCount > 0 ? approvedCount : ""} workflow{approvedCount !== 1 ? "s" : ""} <Arrow />
+          </button>
+          {approvedCount > 0 && (
+            <div style={{ marginTop: 10, fontSize: 13, fontWeight: 300, color: "var(--ink-3)" }}>
+              {approvedCount} of {workflowIds.length} approved
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -834,18 +956,22 @@ function CountUp({ to, prefix = "", suffix = "", decimals = 0, dur = 1100 }) {
 }
 
 /* ===== Running ===== */
-function Running({ onBackToRecommend }) {
+/* RunningCard — one per deployed workflow */
+function RunningCard({ workflowId }) {
+  const meta = WORKFLOW_RUNNING_META[workflowId] || WORKFLOW_RUNNING_META.rent;
+  const wfSteps = WORKFLOW_STEPS[workflowId] || WORKFLOW_STEPS.rent;
+  const wfReplies = WORKFLOW_REPLIES_MAP[workflowId] || WORKFLOW_REPLIES_MAP.rent;
+
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [workflow, setWorkflow] = useState(HOW_IT_WORKS.map(s => ({ ...s })));
+  const [workflow, setWorkflow] = useState(wfSteps.map(s => ({ ...s })));
   const [messages, setMessages] = useState([]);
   const [editInput, setEditInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [expandedStep, setExpandedStep] = useState(null);
   const chatEndRef = React.useRef(null);
 
-  // Simulate time passing — stats count up
   useEffect(() => {
     if (paused) return;
     const t = setTimeout(() => { if (elapsed < 30) setElapsed(e => e + 1); }, 100);
@@ -864,19 +990,15 @@ function Running({ onBackToRecommend }) {
     setEditInput("");
     setMessages(m => [...m, { from: "user", text }]);
     setTyping(true);
-
     const lower = text.toLowerCase();
-    const match = WORKFLOW_REPLIES.find(r => r.keywords.some(k => lower.includes(k)));
-
+    const match = wfReplies.find(r => r.keywords.some(k => lower.includes(k)));
     setTimeout(() => {
       const reply = match ? match.text : WORKFLOW_DEFAULT_REPLY;
       setMessages(m => [...m, { from: "ai", text: reply }]);
       if (match) {
         setWorkflow(wf => {
           const next = [...wf];
-          if (match.change) {
-            next[match.change.idx] = { ...next[match.change.idx], label: match.change.label, detail: match.change.detail };
-          }
+          if (match.change) next[match.change.idx] = { ...next[match.change.idx], label: match.change.label, detail: match.change.detail };
           if (match.add) next.push(match.add);
           return next;
         });
@@ -885,6 +1007,96 @@ function Running({ onBackToRecommend }) {
     }, 800 + Math.random() * 600);
   }
 
+  const hasCollected = meta.stats.collected > 0;
+
+  return (
+    <div className={"running-card" + (paused ? "" : " live")}>
+      <div className="running-card-header">
+        <div>
+          <div className="running-card-title">{meta.title}</div>
+          <div className="running-card-sub">Deployed just now · {meta.schedule}</div>
+        </div>
+        <span className={paused ? "pill wait" : "pill go"}>
+          <span className="dot" />{paused ? "Paused" : "Live"}
+        </span>
+      </div>
+      <div className="running-stats">
+        <div className="running-stat">
+          <div className="running-stat-v tabular"><CountUp to={Math.round(meta.stats.sent * progress)} /></div>
+          <div className="running-stat-k">actions taken</div>
+        </div>
+        <div className="running-stat">
+          <div className="running-stat-v tabular"><CountUp to={Math.round(meta.stats.hours * progress)} />h</div>
+          <div className="running-stat-k">hours saved</div>
+        </div>
+        {hasCollected && (
+          <div className="running-stat">
+            <div className="running-stat-v tabular" style={{ color: paused ? "var(--ink-3)" : "var(--go)" }}>$<CountUp to={Math.round(meta.stats.collected * progress)} />k</div>
+            <div className="running-stat-k">collected</div>
+          </div>
+        )}
+        <div className="running-stat">
+          <div className="running-stat-v tabular">{meta.stats.roi}</div>
+          <div className="running-stat-k">ROI</div>
+        </div>
+      </div>
+
+      <div className="running-actions">
+        <button className="running-icon-btn" onClick={() => setPaused(p => !p)} title={paused ? "Resume" : "Pause"}>
+          {paused ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          )}
+        </button>
+        <button className="running-icon-btn" onClick={() => setEditing(e => !e)} title={editing ? "Close editor" : "Edit workflow"}>
+          {editing ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+          )}
+        </button>
+      </div>
+
+      {editing && (
+        <div className="running-edit fade-in">
+          <div className="steps-friendly" style={{ marginTop: 0 }}>
+            {workflow.map((s, i) => (
+              <div className="sf-row" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
+                <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
+                <div>
+                  <div className="lbl">{s.label}</div>
+                  {expandedStep === i && <div className="det fade-in">{s.detail}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+          {messages.length > 0 && (
+            <div className="setup-chat" style={{ marginTop: 12 }}>
+              <div className="setup-chat-body">
+                {messages.map((m, i) => (
+                  <div key={i} className={"bubble " + (m.from === "ai" ? "ai" : "draft")} style={m.from === "user" ? { alignSelf: "flex-end" } : {}}>
+                    {m.text}
+                  </div>
+                ))}
+                {typing && <div className="bubble ai" style={{ color: "var(--ink-3)" }}>Thinking…</div>}
+                <div ref={chatEndRef} />
+              </div>
+            </div>
+          )}
+          <div className="setup-chat-standalone" style={{ marginTop: 12 }}>
+            <input type="text" placeholder="Change anything…" value={editInput}
+              onChange={e => setEditInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendEdit()} disabled={typing} />
+            <button className="btn sm" onClick={sendEdit} disabled={!editInput.trim() || typing}>Send</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ===== Running page ===== */
+function Running({ deployed, onBackToRecommend }) {
   return (
     <div className="fade-in">
       <div className="greeting">Workflows are live</div>
@@ -893,96 +1105,8 @@ function Running({ onBackToRecommend }) {
         Deployed workflows are active. You'll get approvals on WhatsApp.
       </p>
 
-      {/* Active workflow card */}
-      <div className={"running-card" + (paused ? "" : " live")} style={{ marginTop: 28 }}>
-        <div className="running-card-header">
-          <div>
-            <div className="running-card-title">Chasing late rent</div>
-            <div className="running-card-sub">Deployed just now · runs every weekday at 8am</div>
-          </div>
-          <span className={paused ? "pill wait" : "pill go"}>
-            <span className="dot" />{paused ? "Paused" : "Live"}
-          </span>
-        </div>
-        <div className="running-stats">
-          <div className="running-stat">
-            <div className="running-stat-v tabular"><CountUp to={Math.round(148 * progress)} /></div>
-            <div className="running-stat-k">reminders sent</div>
-          </div>
-          <div className="running-stat">
-            <div className="running-stat-v tabular"><CountUp to={Math.round(31 * progress)} />h</div>
-            <div className="running-stat-k">hours saved</div>
-          </div>
-          <div className="running-stat">
-            <div className="running-stat-v tabular" style={{ color: paused ? "var(--ink-3)" : "var(--go)" }}>$<CountUp to={Math.round(92 * progress)} />k</div>
-            <div className="running-stat-k">collected</div>
-          </div>
-          <div className="running-stat">
-            <div className="running-stat-v tabular">6.1x</div>
-            <div className="running-stat-k">ROI</div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="running-actions">
-          <button className="running-icon-btn" onClick={() => setPaused(p => !p)} title={paused ? "Resume" : "Pause"}>
-            {paused ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-            )}
-          </button>
-          <button className="running-icon-btn" onClick={() => setEditing(e => !e)} title={editing ? "Close editor" : "Edit workflow"}>
-            {editing ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-            )}
-          </button>
-        </div>
-
-        {/* Inline edit */}
-        {editing && (
-          <div className="running-edit fade-in">
-            <div className="steps-friendly" style={{ marginTop: 0 }}>
-              {workflow.map((s, i) => (
-                <div className="sf-row" key={i} onClick={() => setExpandedStep(expandedStep === i ? null : i)} style={{ cursor: "pointer" }}>
-                  <div className={"sf-num " + (s.kind === "human" ? "gold" : s.kind === "trigger" ? "mint" : "")}>{i + 1}</div>
-                  <div>
-                    <div className="lbl">{s.label}</div>
-                    {expandedStep === i && <div className="det fade-in">{s.detail}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {messages.length > 0 && (
-              <div className="setup-chat" style={{ marginTop: 12 }}>
-                <div className="setup-chat-body">
-                  {messages.map((m, i) => (
-                    <div key={i} className={"bubble " + (m.from === "ai" ? "ai" : "draft")} style={m.from === "user" ? { alignSelf: "flex-end" } : {}}>
-                      {m.text}
-                    </div>
-                  ))}
-                  {typing && <div className="bubble ai" style={{ color: "var(--ink-3)" }}>Thinking…</div>}
-                  <div ref={chatEndRef} />
-                </div>
-              </div>
-            )}
-
-            <div className="setup-chat-standalone" style={{ marginTop: 12 }}>
-              <input
-                type="text"
-                placeholder="Change anything — tone, timing, escalation…"
-                value={editInput}
-                onChange={e => setEditInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && sendEdit()}
-                disabled={typing}
-              />
-              <button className="btn sm" onClick={sendEdit} disabled={!editInput.trim() || typing}>Send</button>
-            </div>
-          </div>
-        )}
+      <div className="running-cards">
+        {deployed.map(id => <RunningCard key={id} workflowId={id} />)}
       </div>
 
       {/* Back to recommend */}
@@ -1001,11 +1125,10 @@ function Running({ onBackToRecommend }) {
           We don't sell AI. We sell time back to you and your team.
         </div>
       </div>
-
     </div>
   );
 }
 
 Object.assign(window, {
-  Sidebar, Connect, Recommend, Setup, Running,
+  Sidebar, Connect, Recommend, Setup, RunningCard, Running,
 });
