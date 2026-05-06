@@ -3,200 +3,218 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>No-Go AI · The AI Business Engineer for SMBs</title>
+  <title>No-Go AI · The AI Department You Never Had to Hire</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; }
-    html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
-    body {
-      font-family: "Source Serif 4", Georgia, serif;
-      background: #faf9f6;
-      color: #1a2332;
-      -webkit-font-smoothing: antialiased;
-      font-size: 16px; line-height: 1.5;
-      overflow-x: hidden;
-    }
-    .snap { scroll-snap-align: start; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+    html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+    body { font-family: "Source Serif 4", Georgia, serif; background: #f5f3f0; color: #1e1f21; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.5; overflow-x: hidden; }
+
     :root {
-      --ink: #1a2332; --ink-2: #4a5568; --ink-3: #8896a6;
-      --primary: #2b5ea7; --primary-hover: #234d8c;
-      --bg: #faf9f6; --bg-2: #f2f0ec; --paper: #fefefe;
-      --rule: #e8e5df;
-      --go: #3a8a6a; --go-soft: #edf7f2;
-      --gold: #c8a94e; --gold-soft: #fdf8eb;
+      --ink: #1e1f21; --ink-2: #6b6e5d; --ink-3: #b0a899;
+      --primary: #1c4d5a; --primary-hover: #163f4a;
+      --bg: #f5f3f0; --bg-2: #edebe7; --paper: #fbfaf8;
+      --rule: #ddd7ce;
+      --go: #7a9a68; --go-soft: #e8f0e2;
+      --gold: #cfc07c; --gold-soft: #f5f0dc;
     }
 
     /* Nav */
-    .nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 32px; z-index: 40;
-      background: rgba(250,249,246,0.88);
-      backdrop-filter: blur(12px);
-    }
+    .nav { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 12px 32px; z-index: 40; background: rgba(245,243,240,0.88); backdrop-filter: blur(12px); }
     .nav-brand { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; text-decoration: none; color: var(--ink); }
     .nav-mark { width: 28px; height: 28px; border-radius: 8px; background: var(--primary); display: grid; place-items: center; }
     .nav-mark::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2.5px var(--paper) inset, 0 0 0 4px var(--primary) inset; }
     .nav-links { display: flex; gap: 8px; }
 
     /* Buttons */
-    .btn { font-family: inherit; font-size: 14px; font-weight: 600; height: 42px; padding: 0 22px; border-radius: 10px; border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: transform 80ms, background 120ms, opacity 120ms; text-decoration: none; }
+    .btn { font-family: inherit; font-size: 14px; font-weight: 600; height: 42px; padding: 0 22px; border-radius: 10px; border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: transform 80ms, background 120ms; text-decoration: none; }
     .btn:hover { background: var(--primary-hover); }
     .btn:active { transform: translateY(1px); }
     .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
     .btn.ghost:hover { background: var(--bg-2); }
     .btn.lg { height: 52px; padding: 0 32px; font-size: 16px; border-radius: 13px; }
     .btn.sm { height: 36px; padding: 0 16px; font-size: 13px; }
+    .btn.white { background: white; color: var(--ink); border-color: white; }
+    .btn.white:hover { background: var(--bg-2); }
+    .btn.ghost-white { background: transparent; color: white; border-color: rgba(255,255,255,0.3); }
+    .btn.ghost-white:hover { background: rgba(255,255,255,0.1); }
     .arrow { transition: transform 160ms; }
     .btn:hover .arrow { transform: translateX(3px); }
 
-    /* Reveal animation */
-    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s cubic-bezier(0.2,0.8,0.2,1), transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
+    /* Snap panels */
+    .panel { min-height: 100vh; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; position: relative; }
+
+    /* Reveal */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s cubic-bezier(0.2,0.8,0.2,1), transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
-    .reveal.faded { opacity: 0.08; transform: translateY(-12px); }
-    .reveal-d1 { transition-delay: 0.1s; }
-    .reveal-d2 { transition-delay: 0.2s; }
-    .reveal-d3 { transition-delay: 0.3s; }
+    .reveal.faded { opacity: 0.06; transform: translateY(-10px); }
+    .reveal-d1 { transition-delay: 0.1s; } .reveal-d2 { transition-delay: 0.2s; } .reveal-d3 { transition-delay: 0.3s; } .reveal-d4 { transition-delay: 0.4s; }
 
-    /* Sections */
-    section { max-width: 960px; margin: 0 auto; padding: 0 32px; }
-
-    /* ===== Hero ===== */
-    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 60px; scroll-snap-align: start; }
-    .hero-tagline { font-size: 13px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--primary); margin-bottom: 16px; }
-    .hero-title { font-size: 60px; font-weight: 300; line-height: 1.06; letter-spacing: -0.03em; max-width: 720px; margin: 0 auto 20px; }
-    .hero-title strong { font-weight: 700; }
-    .hero-sub { font-size: 19px; font-weight: 300; color: var(--ink-2); max-width: 500px; margin: 0 auto 36px; line-height: 1.5; }
+    /* ===== Panel 1: Hero (dark) ===== */
+    .hero {
+      text-align: center; padding: 0 32px;
+      background: #1e1f21;
+      color: #f5f3f0;
+      position: relative; overflow: hidden;
+    }
+    .hero-tagline { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+    .hero-title { font-size: 76px; font-weight: 300; line-height: 1.02; letter-spacing: -0.035em; max-width: 780px; margin: 0 auto 24px; color: #f5f3f0; }
+    .hero-title strong { font-weight: 700; color: white; }
+    .hero-sub { font-size: 19px; font-weight: 300; color: rgba(245,243,240,0.55); margin: 0 auto 40px; max-width: 480px; }
     .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .scroll-hint { margin-top: 48px; color: var(--ink-3); font-size: 12px; font-weight: 400; display: flex; flex-direction: column; align-items: center; gap: 6px; animation: float 2.5s ease-in-out infinite; }
+    .hero .btn.lg { background: white; color: #1e1f21; border-color: white; }
+    .hero .btn.lg:hover { background: #edebe7; }
+    .hero .btn.ghost-hero { background: transparent; color: rgba(245,243,240,0.7); border-color: rgba(245,243,240,0.2); }
+    .hero .btn.ghost-hero:hover { background: rgba(245,243,240,0.08); color: white; }
+
+    .scroll-hint { margin-top: 48px; color: rgba(245,243,240,0.3); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; animation: float 2.5s ease-in-out infinite; }
     @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
-    /* ===== Pipeline ===== */
-    .pipeline-section { padding: 40px 0 80px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
-    .pipeline-section .section-label { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; text-align: center; }
-    .pipeline-section .section-title { font-size: 36px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.12; margin-bottom: 48px; text-align: center; }
-    .pipeline-section .section-title strong { font-weight: 600; }
+    /* Nav goes transparent on dark hero */
+    .nav { background: rgba(30,31,33,0.7); backdrop-filter: blur(12px); }
+    .nav-brand { color: #f5f3f0; }
+    .nav .btn.ghost.sm { color: rgba(245,243,240,0.7); border-color: rgba(245,243,240,0.2); }
+    .nav .btn.ghost.sm:hover { background: rgba(245,243,240,0.08); color: white; }
+    .nav .btn.sm:not(.ghost) { background: white; color: #1e1f21; border-color: white; }
+    .nav .btn.sm:not(.ghost):hover { background: #edebe7; }
 
-    .pipeline-flow {
-      display: flex; align-items: flex-start; gap: 0;
-      position: relative;
-    }
-    .pipeline-phase {
-      flex: 1; text-align: center; position: relative;
-      padding: 0 16px;
-    }
-    .pipeline-icon-wrap {
-      width: 56px; height: 56px; border-radius: 16px;
-      display: grid; place-items: center;
-      margin: 0 auto 14px;
-      font-size: 24px;
-    }
-    .pipeline-icon-wrap.p1 { background: var(--go-soft); color: var(--go); }
-    .pipeline-icon-wrap.p2 { background: oklch(95% 0.04 230); color: var(--primary); }
-    .pipeline-icon-wrap.p3 { background: var(--gold-soft); color: var(--gold); }
-    .pipeline-phase h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
-    .pipeline-phase p { font-size: 14px; font-weight: 300; color: var(--ink-2); line-height: 1.5; max-width: 260px; margin: 0 auto; }
+    /* ===== Panel 2: Pipeline ===== */
+    .pipeline-panel { padding: 80px 32px; scroll-snap-align: start; }
+    .pipeline-inner { max-width: 960px; margin: 0 auto; }
+    .section-label { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; text-align: center; }
+    .section-title { font-size: 34px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.12; margin-bottom: 44px; text-align: center; }
+    .section-title strong { font-weight: 600; }
 
-    /* Connector line */
-    .pipeline-connector {
-      width: 48px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      padding-top: 16px;
-      color: var(--rule);
+    /* Stats strip */
+    .stats-strip {
+      display: flex; gap: 40px; justify-content: center; align-items: center;
+      margin-bottom: 64px;
+      padding: 28px 32px;
+      background: var(--paper); border: 1px solid var(--rule);
+      border-radius: 16px;
     }
-    .pipeline-connector svg { display: block; }
-    .pipeline-connector.drawn { color: var(--primary); transition: color 0.8s ease 0.3s; }
+    .stats-strip-item { text-align: center; }
+    .stats-strip-val { font-size: 36px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: var(--ink); }
+    .stats-strip-val.green { color: var(--go); }
+    .stats-strip-label { font-size: 12px; font-weight: 300; color: var(--ink-3); margin-top: 4px; }
+    .stats-strip-divider { width: 1px; height: 40px; background: var(--rule); }
 
-    /* Sub-steps */
-    .pipeline-steps {
-      display: flex; gap: 6px; justify-content: center;
-      margin-top: 12px; flex-wrap: wrap;
+    /* Feature rows — Lindy style */
+    .feature-rows { display: flex; flex-direction: column; gap: 64px; }
+    .feature-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 48px; align-items: center;
     }
-    .pipeline-step-pill {
-      font-size: 11px; font-weight: 500; padding: 4px 10px;
-      border-radius: 999px; background: var(--bg-2); color: var(--ink-3);
+    .feature-row.reverse { direction: rtl; }
+    .feature-row.reverse > * { direction: ltr; }
+    .feature-text {}
+    .feature-label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
+    .feature-label.green { color: var(--go); }
+    .feature-label.blue { color: var(--primary); }
+    .feature-label.gold { color: var(--gold); }
+    .feature-text h3 { font-size: 28px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 10px; }
+    .feature-text h3 strong { font-weight: 600; }
+    .feature-text p { font-size: 15px; font-weight: 300; color: var(--ink-2); line-height: 1.55; }
+    .feature-pills { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+    .feature-pill { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--bg-2); color: var(--ink-3); }
+
+    /* Mockup cards */
+    .mockup {
+      background: var(--paper); border: 1px solid var(--rule);
+      border-radius: 16px; padding: 20px;
+      box-shadow: 0 8px 32px -8px rgba(30,31,33,0.08);
     }
-
-    /* ===== Numbers ===== */
-    .numbers-snap { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; padding: 0 32px; }
-    .numbers {
-      padding: 64px 0;
-      background: var(--ink); color: white;
-      border-radius: 20px;
-      max-width: 960px;
-      margin: 0 auto;
+    .mockup-gradient {
+      background: var(--go-soft);
     }
-    .numbers-inner { max-width: 800px; margin: 0 auto; padding: 0 32px; text-align: center; }
-    .numbers .section-label { color: var(--gold); font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
-    .numbers .section-title { color: white; font-size: 32px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 44px; }
-    .numbers .section-title strong { font-weight: 600; }
-    .numbers-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; }
-    .num-val { font-size: 52px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; }
-    .num-val .unit { font-size: 26px; font-weight: 300; }
-    .num-label { font-size: 14px; font-weight: 300; color: #a0aab4; margin-top: 8px; }
+    .mockup-gradient-blue {
+      background: #dfeef2;
+    }
+    .mockup-gradient-gold {
+      background: var(--gold-soft);
+    }
+    .mockup-header { font-size: 11px; font-weight: 500; color: var(--ink-3); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .mockup-header .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .mockup-header .dot.green { background: var(--go); }
+    .mockup-header .dot.blue { background: var(--primary); }
+    .mockup-header .dot.gold { background: var(--gold); }
+    .mockup-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg); border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
+    .mockup-item:last-child { margin-bottom: 0; }
+    .mockup-item .name { font-weight: 500; }
+    .mockup-item .meta { font-size: 11px; color: var(--ink-3); font-weight: 300; }
+    .mockup-item .pill-sm { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+    .mockup-item .pill-sm.green { background: var(--go-soft); color: var(--go); }
+    .mockup-item .pill-sm.gold { background: var(--gold-soft); color: #9a8a3a; }
+    .mockup-bar { height: 6px; border-radius: 3px; background: var(--bg-2); margin: 8px 0; }
+    .mockup-bar-fill { height: 100%; border-radius: 3px; }
+    .mockup-bar-fill.green { background: var(--go); }
+    .mockup-bar-fill.blue { background: var(--primary); }
+    .mockup-stat-row { display: flex; gap: 16px; margin-top: 12px; }
+    .mockup-stat { text-align: center; flex: 1; }
+    .mockup-stat-v { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+    .mockup-stat-v.green { color: var(--go); }
+    .mockup-stat-k { font-size: 10px; font-weight: 300; color: var(--ink-3); margin-top: 2px; }
+    .mockup-chat { padding: 8px 12px; border-radius: 12px 12px 12px 4px; background: var(--bg); font-size: 12px; color: var(--ink-2); line-height: 1.5; margin-bottom: 6px; }
+    .mockup-chat.reply { border-radius: 12px 12px 4px 12px; background: var(--primary); color: white; margin-left: 32px; }
 
-    /* ===== Trust ===== */
-    .trust { padding: 80px 0 48px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
-    .trust .section-label { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; }
-    .trust .section-title { font-size: 32px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 40px; }
-    .trust .section-title strong { font-weight: 600; }
-    .trust-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-    .trust-card { padding: 24px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; text-align: left; }
-    .trust-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 12px; }
-    .trust-icon.green { background: var(--go-soft); color: var(--go); }
-    .trust-icon.gold { background: var(--gold-soft); color: #9a8230; }
-    .trust-icon.blue { background: oklch(95% 0.04 230); color: var(--primary); }
-    .trust-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-    .trust-card p { font-size: 13px; font-weight: 300; color: var(--ink-2); line-height: 1.5; }
+    /* ===== Panel 3: Trust + CTA ===== */
+    .trust-panel { padding: 0 32px; }
+    .trust-inner { max-width: 720px; margin: 0 auto; text-align: center; }
+    .trust-list { display: flex; flex-direction: column; gap: 14px; margin: 32px 0 40px; text-align: left; }
+    .trust-item { display: flex; gap: 14px; align-items: flex-start; padding: 16px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; }
+    .trust-item-icon { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; }
+    .trust-item-icon.green { background: var(--go-soft); color: var(--go); }
+    .trust-item-icon.gold { background: var(--gold-soft); color: #9a8a3a; }
+    .trust-item-icon.blue { background: #dfeef2; color: var(--primary); }
+    .trust-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .trust-item p { font-size: 13px; font-weight: 300; color: var(--ink-2); }
 
-    /* ===== Final CTA ===== */
-    .final-cta { padding: 56px 0 80px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
-    .final-cta .section-title { font-size: 32px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 28px; }
-    .final-cta .section-title strong { font-weight: 600; }
+    /* ===== Panel 4: Dark close ===== */
+    .dark-close { background: #1e1f21; color: white; text-align: center; padding: 0 32px; }
+    .dark-inner { max-width: 640px; margin: 0 auto; }
+    .dark-close .big-line { font-size: 36px; font-weight: 300; line-height: 1.2; letter-spacing: -0.02em; }
+    .dark-close .big-line strong { font-weight: 700; }
+    .dark-close .sub-line { font-size: 16px; font-weight: 300; color: #b0a899; margin-top: 14px; margin-bottom: 36px; }
 
     /* Footer */
-    .footer { padding: 24px 32px; text-align: center; font-size: 12px; font-weight: 300; color: var(--ink-3); border-top: 1px solid var(--rule); }
+    .footer { padding: 20px 32px; text-align: center; font-size: 11px; font-weight: 300; color: var(--ink-3); border-top: 1px solid var(--rule); scroll-snap-align: none; }
 
     /* Modal */
-    .modal-bg { position: fixed; inset: 0; background: rgba(26,35,50,0.30); backdrop-filter: blur(4px); display: grid; place-items: center; z-index: 50; animation: fadeup 180ms ease both; padding: 24px; }
-    .modal { width: 380px; max-width: 100%; background: var(--paper); border-radius: 18px; padding: 32px; box-shadow: 0 24px 64px -16px rgba(26,35,50,0.25); text-align: center; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(30,31,33,0.30); backdrop-filter: blur(4px); display: grid; place-items: center; z-index: 50; animation: fadeup 180ms ease both; padding: 24px; }
+    .modal { width: 380px; max-width: 100%; background: var(--paper); border-radius: 18px; padding: 32px; box-shadow: 0 24px 64px -16px rgba(30,31,33,0.25); text-align: center; }
     .modal h3 { font-size: 22px; font-weight: 400; letter-spacing: -0.015em; margin-bottom: 6px; }
     .modal p { font-size: 14px; font-weight: 300; color: var(--ink-2); margin-bottom: 20px; }
     .modal input { width: 100%; height: 44px; padding: 0 14px; border: 1px solid var(--rule); border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 400; background: var(--bg-2); color: var(--ink); outline: none; text-align: center; letter-spacing: 0.04em; }
     .modal input:focus { border-color: var(--primary); }
     .modal input::placeholder { color: var(--ink-3); letter-spacing: 0; }
-    .modal .error { font-size: 12px; color: #e53935; margin-top: 6px; min-height: 18px; }
+    .modal .error { font-size: 12px; color: #8b2332; margin-top: 6px; min-height: 18px; }
     .modal .actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
 
     @keyframes fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Counter animation */
-    .num-val[data-to] { font-variant-numeric: tabular-nums; }
-
     /* Mobile */
     @media (max-width: 768px) {
       .nav { padding: 10px 16px; }
-      section { padding-left: 16px; padding-right: 16px; }
-      .hero-title { font-size: 36px; }
+      .hero, .pipeline-panel, .trust-panel, .dark-close { padding-left: 16px; padding-right: 16px; }
+      .hero-title { font-size: 42px; }
       .hero-sub { font-size: 16px; }
-      .pipeline-flow { flex-direction: column; align-items: center; gap: 20px; }
-      .pipeline-connector { width: auto; height: 32px; padding-top: 0; transform: rotate(90deg); }
-      .pipeline-section .section-title { font-size: 28px; }
-      .numbers-snap { padding: 0 16px; }
-      .numbers { padding: 48px 0; }
-      .numbers-grid { grid-template-columns: 1fr; gap: 24px; }
-      .numbers .section-title { font-size: 26px; }
-      .num-val { font-size: 40px; }
-      .trust-grid { grid-template-columns: 1fr; }
-      .trust .section-title { font-size: 26px; }
-      .final-cta .section-title { font-size: 26px; }
+      .hero::before { width: 500px; height: 500px; }
+      .stats-strip { flex-direction: column; gap: 20px; padding: 24px; }
+      .stats-strip-divider { width: 60px; height: 1px; }
+      .stats-strip-val { font-size: 28px; }
+      .feature-row, .feature-row.reverse { grid-template-columns: 1fr; gap: 24px; direction: ltr; }
+      .feature-text h3 { font-size: 22px; }
+      .feature-rows { gap: 48px; }
+      .section-title { font-size: 26px; margin-bottom: 32px; }
+      .dark-close .big-line { font-size: 26px; }
       .scroll-hint { display: none; }
     }
     @media (max-width: 480px) {
-      .hero-title { font-size: 28px; }
-      .pipeline-phase h3 { font-size: 16px; }
+      .hero-title { font-size: 32px; }
+      .hero-stats { flex-direction: column; gap: 16px; }
+      .hero-divider { display: none; }
     }
   </style>
 </head>
@@ -211,133 +229,173 @@
     </div>
   </nav>
 
-  <!-- Hero -->
-  <section class="hero">
+  <!-- Panel 1: Hero (dark) -->
+  <section class="panel hero">
     <div class="hero-tagline reveal">The AI Business Engineer for SMBs</div>
-    <h1 class="hero-title reveal reveal-d1">Stop doing work <strong>AI should do.</strong></h1>
-    <p class="hero-sub reveal reveal-d2">No-Go AI finds repetitive work, automates it safely, and proves the time it saved you — every month.</p>
+    <h1 class="hero-title reveal reveal-d1">The AI department<br><strong>you never had to hire.</strong></h1>
+    <p class="hero-sub reveal reveal-d2">Discovers work. Builds automations. Proves ROI.</p>
     <div class="btn-row reveal reveal-d3">
       <button class="btn lg" id="hero-demo-btn">See it in action
         <svg class="arrow" width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <a class="btn ghost lg" href="mailto:ori@no-go.ai">Get in touch</a>
+      <a class="btn ghost-hero lg" href="mailto:ori@no-go.ai">Get in touch</a>
     </div>
     <div class="scroll-hint">
       <svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1l6 6 6-6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
   </section>
 
-  <!-- Pipeline: Discover → Automate → Run -->
-  <section class="pipeline-section" id="how">
-    <div class="section-label reveal">One agent, full lifecycle</div>
-    <h2 class="section-title reveal">Discover. Automate. <strong>Run.</strong></h2>
-    <div class="pipeline-flow">
-      <div class="pipeline-phase reveal">
-        <div class="pipeline-icon-wrap p1">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+  <!-- Panel 2: Pipeline -->
+  <section class="pipeline-panel" id="how">
+    <div class="pipeline-inner">
+      <div class="section-label reveal">One agent, full lifecycle</div>
+      <h2 class="section-title reveal">Discover. Automate. <strong>Run.</strong></h2>
+
+      <div class="stats-strip reveal">
+        <div class="stats-strip-item">
+          <div class="stats-strip-val" data-to="94">0</div>
+          <div class="stats-strip-label">tasks/month automated</div>
         </div>
-        <h3>Discover</h3>
-        <p>Connects to your apps, scans 90 days of data, finds the work that's eating your time.</p>
-        <div class="pipeline-steps">
-          <span class="pipeline-step-pill">Connect apps</span>
-          <span class="pipeline-step-pill">Scan data</span>
-          <span class="pipeline-step-pill">Rank work</span>
+        <div class="stats-strip-divider"></div>
+        <div class="stats-strip-item">
+          <div class="stats-strip-val" data-to="31">0</div>
+          <div class="stats-strip-label">hours saved per month</div>
         </div>
-      </div>
-      <div class="pipeline-connector reveal reveal-d1" id="conn1">
-        <svg width="32" height="12" viewBox="0 0 32 12" fill="none"><path d="M1 6h29M25 1l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-      <div class="pipeline-phase reveal reveal-d1">
-        <div class="pipeline-icon-wrap p2">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        </div>
-        <h3>Automate</h3>
-        <p>Builds the workflow, tests it against real scenarios, only deploys when it's safe.</p>
-        <div class="pipeline-steps">
-          <span class="pipeline-step-pill">Build</span>
-          <span class="pipeline-step-pill">Test</span>
-          <span class="pipeline-step-pill">Simulate</span>
+        <div class="stats-strip-divider"></div>
+        <div class="stats-strip-item">
+          <div class="stats-strip-val green" data-to="92" data-prefix="$" data-suffix="k">$0k</div>
+          <div class="stats-strip-label">collected faster</div>
         </div>
       </div>
-      <div class="pipeline-connector reveal reveal-d2" id="conn2">
-        <svg width="32" height="12" viewBox="0 0 32 12" fill="none"><path d="M1 6h29M25 1l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-      <div class="pipeline-phase reveal reveal-d2">
-        <div class="pipeline-icon-wrap p3">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+
+      <div class="feature-rows">
+        <!-- Discover -->
+        <div class="feature-row reveal">
+          <div class="feature-text">
+            <div class="feature-label green">Discover</div>
+            <h3>Your repetitive work, <strong>found.</strong></h3>
+            <p>No-Go AI connects to your apps, scans 90 days of data, and surfaces the work that's eating your time — ranked by impact.</p>
+            <div class="feature-pills">
+              <span class="feature-pill">Connect apps</span>
+              <span class="feature-pill">Scan data</span>
+              <span class="feature-pill">Rank by ROI</span>
+            </div>
+          </div>
+          <div class="mockup" style="background: #e8e2d9;">
+            <div class="mockup-header"><span class="dot" style="background: #1c4d5a;"></span> 4 workflows found</div>
+            <div class="mockup-item"><span class="name">Chasing late rent</span><span class="pill-sm" style="background:#dfeef2;color:#1c4d5a;">94x/mo</span></div>
+            <div class="mockup-item"><span class="name">Vendor follow-ups</span><span class="pill-sm" style="background:#dfeef2;color:#1c4d5a;">63x/mo</span></div>
+            <div class="mockup-item"><span class="name">Lease renewals</span><span class="pill-sm" style="background:#f5f0dc;color:#9a8a3a;">38x/mo</span></div>
+            <div class="mockup-item"><span class="name">Tenant complaints</span><span class="meta">57x/mo</span></div>
+          </div>
         </div>
-        <h3>Run & Improve</h3>
-        <p>Handles work daily, learns from exceptions, proves ROI every month.</p>
-        <div class="pipeline-steps">
-          <span class="pipeline-step-pill">Execute</span>
-          <span class="pipeline-step-pill">Monitor</span>
-          <span class="pipeline-step-pill">Learn</span>
+
+        <!-- Automate -->
+        <div class="feature-row reverse reveal">
+          <div class="feature-text">
+            <div class="feature-label blue">Automate</div>
+            <h3>Built, tested, and <strong>safe.</strong></h3>
+            <p>Builds the workflow, lets you tweak it with chat, then runs it through build → test → simulate. Only deploys when it passes.</p>
+            <div class="feature-pills">
+              <span class="feature-pill">Build</span>
+              <span class="feature-pill">Test</span>
+              <span class="feature-pill">Simulate</span>
+            </div>
+          </div>
+          <div class="mockup" style="background: #e8e2d9;">
+            <div class="mockup-header"><span class="dot" style="background: #1c4d5a;"></span> Simulation complete</div>
+            <div style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: #1c4d5a;">96.4%</div>
+            <div style="font-size: 12px; font-weight: 300; color: #b0a899; margin-bottom: 10px;">success rate</div>
+            <div class="mockup-bar"><div class="mockup-bar-fill" style="width: 96.4%; background: #546670;"></div></div>
+            <div class="mockup-stat-row">
+              <div class="mockup-stat"><div class="mockup-stat-v">94</div><div class="mockup-stat-k">tested</div></div>
+              <div class="mockup-stat"><div class="mockup-stat-v" style="color: #1c4d5a;">91</div><div class="mockup-stat-k">passed</div></div>
+              <div class="mockup-stat"><div class="mockup-stat-v" style="color: #8b2332;">3</div><div class="mockup-stat-k">failed</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Run -->
+        <div class="feature-row reveal">
+          <div class="feature-text">
+            <div class="feature-label gold">Run & Improve</div>
+            <h3>Working for you, <strong>every day.</strong></h3>
+            <p>Runs workflows daily. You approve actions until you trust it — then it just works. Learns from exceptions and proves ROI every month.</p>
+            <div class="feature-pills">
+              <span class="feature-pill">Execute</span>
+              <span class="feature-pill">Monitor</span>
+              <span class="feature-pill">Learn</span>
+            </div>
+          </div>
+          <div class="mockup" style="background: #e8e2d9;">
+            <div class="mockup-header"><span class="dot" style="background: #cfc07c;"></span> This month</div>
+            <div class="mockup-chat">Hi Abigail, I drafted a late rent reminder for Ava Thompson. Want me to send it?</div>
+            <div class="mockup-chat reply" style="background: #1c4d5a;">Send it</div>
+            <div class="mockup-stat-row" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #ddd7ce;">
+              <div class="mockup-stat"><div class="mockup-stat-v">148</div><div class="mockup-stat-k">sent</div></div>
+              <div class="mockup-stat"><div class="mockup-stat-v">31h</div><div class="mockup-stat-k">saved</div></div>
+              <div class="mockup-stat"><div class="mockup-stat-v" style="color:#1c4d5a;">$92k</div><div class="mockup-stat-k">collected</div></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Numbers -->
-  <div class="numbers-snap">
-  <div class="numbers reveal">
-    <div class="numbers-inner">
-      <div class="section-label">First month results</div>
-      <h2 class="section-title">Proof, not <strong>promises.</strong></h2>
-      <div class="numbers-grid">
-        <div>
-          <div class="num-val" data-to="94">0<span class="unit">x</span></div>
-          <div class="num-label">tasks automated per month</div>
+  <!-- Panel 3: Trust + CTA -->
+  <section class="panel trust-panel">
+    <div class="trust-inner">
+      <div class="section-label reveal">Built on trust</div>
+      <h2 class="section-title reveal">You're always <strong>in control.</strong></h2>
+      <div class="trust-list">
+        <div class="trust-item reveal">
+          <div class="trust-item-icon green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <div>
+            <h4>Human approval is the default</h4>
+            <p>Nothing gets sent without you clicking approve.</p>
+          </div>
         </div>
-        <div>
-          <div class="num-val" data-to="31">0<span class="unit">h</span></div>
-          <div class="num-label">hours saved — almost a full work week</div>
+        <div class="trust-item reveal reveal-d1">
+          <div class="trust-item-icon gold">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          </div>
+          <div>
+            <h4>Flags unusual situations</h4>
+            <p>Payment plans, disputes, hardship cases — it pauses and asks.</p>
+          </div>
         </div>
-        <div>
-          <div class="num-val" data-prefix="$" data-to="92">$0<span class="unit">k</span></div>
-          <div class="num-label">collected faster with AI reminders</div>
+        <div class="trust-item reveal reveal-d2">
+          <div class="trust-item-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          </div>
+          <div>
+            <h4>Proves it every month</h4>
+            <p>Tasks done, hours saved, dollars collected. Real ROI.</p>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-  </div>
-
-  <!-- Trust -->
-  <section class="trust">
-    <div class="section-label reveal">Built on trust</div>
-    <h2 class="section-title reveal">You're always <strong>in control.</strong></h2>
-    <div class="trust-grid">
-      <div class="trust-card reveal">
-        <div class="trust-icon green">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-        </div>
-        <h3>Human approval is the default</h3>
-        <p>Nothing gets sent without you clicking approve. No-Go AI asks first — always.</p>
-      </div>
-      <div class="trust-card reveal reveal-d1">
-        <div class="trust-icon gold">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        </div>
-        <h3>Flags unusual situations</h3>
-        <p>Payment plans, disputes, hardship cases — it pauses and asks you what to do.</p>
-      </div>
-      <div class="trust-card reveal reveal-d2">
-        <div class="trust-icon blue">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-        </div>
-        <h3>Proves it every month</h3>
-        <p>Tasks done, hours saved, dollars collected. An AI Savings Statement you can show your team.</p>
+      <div class="btn-row reveal reveal-d3">
+        <button class="btn lg" id="trust-demo-btn">Watch the demo
+          <svg class="arrow" width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <a class="btn ghost lg" href="mailto:ori@no-go.ai">Get in touch</a>
       </div>
     </div>
   </section>
 
-  <!-- Final CTA -->
-  <section class="final-cta reveal">
-    <h2 class="section-title">Ready to see <strong>what it does?</strong></h2>
-    <div class="btn-row">
-      <button class="btn lg" id="final-demo-btn">Watch the demo
-        <svg class="arrow" width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <a class="btn ghost lg" href="mailto:ori@no-go.ai">Contact us</a>
+  <!-- Panel 4: Dark close -->
+  <section class="panel dark-close">
+    <div class="dark-inner">
+      <div class="big-line reveal">We don't sell AI.<br><strong>We sell ROI.</strong></div>
+      <div class="sub-line reveal reveal-d1">Every business deserves an AI department. No-Go AI is yours.</div>
+      <div class="btn-row reveal reveal-d2">
+        <button class="btn lg white" id="final-demo-btn">See it in action
+          <svg class="arrow" width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <a class="btn ghost-white lg" href="mailto:ori@no-go.ai">Contact us</a>
+      </div>
     </div>
   </section>
 
@@ -361,59 +419,50 @@
     // Scroll reveal + fade out
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add("visible");
-          e.target.classList.remove("faded");
-        } else if (e.target.classList.contains("visible")) {
-          // Only fade if scrolled past (above viewport)
-          const r = e.boundingClientRect;
-          if (r.bottom < 0) e.target.classList.add("faded");
+        if (e.isIntersecting) { e.target.classList.add("visible"); e.target.classList.remove("faded"); }
+        else if (e.target.classList.contains("visible")) {
+          if (e.boundingClientRect.bottom < 0) e.target.classList.add("faded");
         }
       });
     }, { threshold: 0 });
     document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
 
-    // Connector line draw on scroll
+    // Connector draw
     const connObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add("drawn"); connObs.unobserve(e.target); }
-      });
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("drawn"); connObs.unobserve(e.target); } });
     }, { threshold: 0.5 });
     document.querySelectorAll(".pipeline-connector").forEach(el => connObs.observe(el));
 
-    // Counter animation for numbers
+    // Counter animation
     const numObs = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (!e.isIntersecting) return;
         const el = e.target;
         const to = parseInt(el.dataset.to);
         const prefix = el.dataset.prefix || "";
-        const unit = el.querySelector(".unit");
-        const unitHtml = unit ? unit.outerHTML : "";
+        const suffix = el.dataset.suffix || "";
         let start = performance.now();
-        const dur = 1200;
         function tick(t) {
-          const p = Math.min(1, (t - start) / dur);
-          const ease = 1 - Math.pow(1 - p, 3);
-          const v = Math.round(to * ease);
-          el.innerHTML = prefix + v + unitHtml;
+          const p = Math.min(1, (t - start) / 1200);
+          const v = Math.round(to * (1 - Math.pow(1 - p, 3)));
+          el.textContent = prefix + v + suffix;
           if (p < 1) requestAnimationFrame(tick);
         }
         requestAnimationFrame(tick);
         numObs.unobserve(el);
       });
     }, { threshold: 0.5 });
-    document.querySelectorAll(".num-val[data-to]").forEach(el => numObs.observe(el));
+    document.querySelectorAll("[data-to]").forEach(el => numObs.observe(el));
 
-    // Password modal
+    // Modal
     const PASS = "demoodem";
     const modal = document.getElementById("modal");
     const pw = document.getElementById("pw");
     const error = document.getElementById("error");
     function openModal() { modal.style.display = "grid"; pw.value = ""; error.textContent = ""; setTimeout(() => pw.focus(), 100); }
-    document.getElementById("hero-demo-btn").addEventListener("click", openModal);
-    document.getElementById("nav-demo-btn").addEventListener("click", openModal);
-    document.getElementById("final-demo-btn").addEventListener("click", openModal);
+    ["hero-demo-btn","nav-demo-btn","trust-demo-btn","final-demo-btn"].forEach(id => {
+      document.getElementById(id).addEventListener("click", openModal);
+    });
     document.getElementById("cancel-btn").addEventListener("click", () => modal.style.display = "none");
     modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
     function tryEnter() { if (pw.value === PASS) { window.location.href = "demo.html"; } else { error.textContent = "Incorrect password."; pw.value = ""; pw.focus(); } }
