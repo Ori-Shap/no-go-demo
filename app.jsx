@@ -19,6 +19,7 @@ function App() {
 
   const [connected, setConnected] = useAppState({});
   const [deployed, setDeployed] = useAppState([]);  // ids of deployed workflows
+  const [selectedWorkflows, setSelectedWorkflows] = useAppState([]);  // ids chosen in Recommend
 
   // Apply theme tweaks live
   useAppEffect(() => {
@@ -67,19 +68,28 @@ function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
-  function onDeploy() {
+  function onStartSetup(ids) {
+    setSelectedWorkflows(ids);
+    go("setup", "recommend");
+  }
+
+  function onDeployAll(ids) {
+    setDeployed(d => [...d, ...ids.filter(id => !d.includes(id))]);
     done("deploy");
-    setDeployed(d => d.includes("rent") ? d : [...d, "rent"]);
-    // Open WhatsApp demo in a popup window
-    const w = 440, h = 720;
-    const left = window.screenX + window.outerWidth - w - 40;
-    const top = window.screenY + 60;
-    const popup = window.open(
-      "whatsapp/index.html",
-      "whatsapp-demo",
-      `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`
-    );
-    setWaPopup(popup);
+
+    // Open WhatsApp popup only on first deploy
+    if (deployed.length === 0) {
+      const w = 440, h = 720;
+      const left = window.screenX + window.outerWidth - w - 40;
+      const top = window.screenY + 60;
+      const popup = window.open(
+        "whatsapp/index.html",
+        "whatsapp-demo",
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`
+      );
+      setWaPopup(popup);
+    }
+
     setScreen("running");
     window.scrollTo({ top: 0, behavior: "instant" });
   }
@@ -87,9 +97,9 @@ function App() {
   let view;
   switch (screen) {
     case "connect": view = <Connect onDone={() => go("recommend", "connect")} connectAllTrigger={connectAllTrigger} autoAdvance={t.autoAdvance} connected={connected} setConnected={setConnected} />; break;
-    case "recommend": view = <Recommend onSetup={() => go("setup", "recommend")} deployed={deployed} />; break;
-    case "setup": view = <Setup onReady={onDeploy} />; break;
-    case "running": view = <Running onBackToRecommend={() => go("recommend")} />; break;
+    case "recommend": view = <Recommend onSetup={onStartSetup} deployed={deployed} />; break;
+    case "setup": view = <Setup workflowIds={selectedWorkflows} onDeployAll={onDeployAll} />; break;
+    case "running": view = <Running deployed={deployed} onBackToRecommend={() => go("recommend")} />; break;
     default: view = null;
   }
 
