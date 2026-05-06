@@ -1127,7 +1127,7 @@ function Running({ deployed, onBackToRecommend, onOpenWhatsApp }) {
           No-Go AI learns your work, asks before it acts, and proves it saved you time.
         </div>
         <div style={{ marginTop: 12, fontSize: 15, fontWeight: 300, color: "oklch(82% 0.02 240)" }}>
-          We don't sell AI. We sell time back to you and your team.
+          We don't sell AI. We sell ROI.
         </div>
       </div>
     </div>
