@@ -60,46 +60,156 @@ const FOUND_LOOPS = [
     ] },
 ];
 
-const HOW_IT_WORKS = [
-  { kind: "trigger", label: "When rent is 7+ days late", detail: "No-Go AI checks every morning at 8am." },
-  { kind: "step", label: "Reads the tenant's history", detail: "Did they pay last month? Are they on a payment plan? Any open issues?" },
-  { kind: "step", label: "Drafts a friendly message", detail: "Tone matches the situation — gentle for first-timers, firmer for repeat lateness." },
-  { kind: "human", label: "Asks you to look it over", detail: "Right here in your No-Go AI inbox. Approve, edit, or skip." },
-  { kind: "step", label: "Sends after you approve", detail: "Goes out from your normal email address. Logged for the record." },
-];
+// Per-workflow steps
+const WORKFLOW_STEPS = {
+  rent: [
+    { kind: "trigger", label: "When rent is 7+ days late", detail: "No-Go AI checks every morning at 8am." },
+    { kind: "step", label: "Reads the tenant's history", detail: "Did they pay last month? Are they on a payment plan? Any open issues?" },
+    { kind: "step", label: "Drafts a friendly message", detail: "Tone matches the situation — gentle for first-timers, firmer for repeat lateness." },
+    { kind: "human", label: "Asks you to look it over", detail: "Right here in your No-Go AI inbox. Approve, edit, or skip." },
+    { kind: "step", label: "Sends after you approve", detail: "Goes out from your normal email address. Logged for the record." },
+  ],
+  vendor: [
+    { kind: "trigger", label: "When a vendor invoice has no reply for 5+ days", detail: "No-Go AI checks Mon/Wed/Fri at 9am." },
+    { kind: "step", label: "Checks invoice status in QuickBooks", detail: "Is it paid, pending, or disputed? Any notes from the team?" },
+    { kind: "step", label: "Drafts a follow-up email", detail: "Professional tone. Includes invoice number, amount, and due date." },
+    { kind: "human", label: "Asks you to review", detail: "You see the draft before it goes out. Approve, edit, or skip." },
+    { kind: "step", label: "Sends after approval", detail: "Goes from accounts payable. Logged and tracked." },
+  ],
+  lease: [
+    { kind: "trigger", label: "When a lease expires within 60 days", detail: "No-Go AI checks weekly on Monday mornings." },
+    { kind: "step", label: "Pulls tenant history and lease terms", detail: "Payment history, maintenance requests, current rate vs market." },
+    { kind: "step", label: "Drafts a renewal offer", detail: "Includes proposed terms, any rate adjustment, and renewal deadline." },
+    { kind: "human", label: "Asks you to review terms", detail: "You confirm the rate and terms before anything is sent." },
+    { kind: "step", label: "Sends to tenant after approval", detail: "Goes from your email. Tenant gets a clear, professional offer." },
+  ],
+  complaint: [
+    { kind: "trigger", label: "When a tenant complaint comes in", detail: "No-Go AI monitors email and AppFolio daily at 7am." },
+    { kind: "step", label: "Categorizes the issue", detail: "Maintenance, noise, billing, or other. Checks for urgency signals." },
+    { kind: "step", label: "Finds relevant contacts", detail: "Matches the issue to the right vendor or team member." },
+    { kind: "human", label: "Routes to you for judgment", detail: "You decide what action to take. No-Go AI never responds to complaints on its own." },
+    { kind: "step", label: "Sends acknowledgment after approval", detail: "Tenant gets a confirmation that their issue was received and assigned." },
+  ],
+};
+const HOW_IT_WORKS = WORKFLOW_STEPS.rent;
 
-// Smart replies for the workflow chat — keyword-matched
-const WORKFLOW_REPLIES = [
-  { keywords: ["tone", "soft", "gentle", "friendly", "nice"],
-    text: "Got it — I've softened the tone across all templates. First-timers now get a warmer opener, and even repeat-late messages avoid any harsh language.",
-    change: { idx: 2, label: "Drafts a warm, friendly message", detail: "Tone is always gentle — even for repeat lateness, the message stays supportive and professional." } },
-  { keywords: ["day", "wait", "delay", "time", "sooner", "later", "week"],
-    text: "Updated — I'll now wait 10 days instead of 7 before the first reminder, and space follow-ups 5 days apart instead of 3.",
-    change: { idx: 0, label: "When rent is 10+ days late", detail: "No-Go AI checks every morning at 8am. Follow-ups spaced 5 days apart." } },
-  { keywords: ["escalat", "manager", "priya", "forward", "route"],
-    text: "Added an escalation step — if there's no response after two reminders, I'll flag it for Priya automatically instead of sending a third email.",
-    change: null, add: { kind: "human", label: "Escalates to Priya after 2 tries", detail: "If no reply after two reminders, routes to your manager instead of sending more emails." } },
-  { keywords: ["skip", "ignore", "exclude", "filter", "payment plan"],
-    text: "Done — tenants on active payment plans will be automatically excluded. I'll only remind tenants with no arrangement in place.",
-    change: { idx: 1, label: "Reads history (skips payment plans)", detail: "Checks for active payment plans and excludes those tenants automatically." } },
-  { keywords: ["cc", "copy", "bcc", "notify"],
-    text: "Added — I'll BCC you on every outgoing reminder so you always have a copy in your inbox.",
-    change: { idx: 4, label: "Sends after you approve (BCC to you)", detail: "Goes from your email address. You get a BCC copy. Logged for the record." } },
-];
+// Per-workflow chat replies
+const WORKFLOW_REPLIES_MAP = {
+  rent: [
+    { keywords: ["tone", "soft", "gentle", "friendly", "nice"],
+      text: "Got it — I've softened the tone across all templates. First-timers now get a warmer opener.",
+      change: { idx: 2, label: "Drafts a warm, friendly message", detail: "Tone is always gentle — even for repeat lateness, the message stays supportive." } },
+    { keywords: ["day", "wait", "delay", "time", "sooner", "later", "week"],
+      text: "Updated — I'll now wait 10 days instead of 7 before the first reminder.",
+      change: { idx: 0, label: "When rent is 10+ days late", detail: "No-Go AI checks every morning at 8am. Follow-ups spaced 5 days apart." } },
+    { keywords: ["escalat", "manager", "priya", "forward", "route"],
+      text: "Added an escalation step — if no response after two reminders, I'll flag it for Priya.",
+      change: null, add: { kind: "human", label: "Escalates to Priya after 2 tries", detail: "Routes to your manager instead of sending more emails." } },
+    { keywords: ["skip", "ignore", "exclude", "filter", "payment plan"],
+      text: "Done — tenants on active payment plans will be automatically excluded.",
+      change: { idx: 1, label: "Reads history (skips payment plans)", detail: "Checks for active payment plans and excludes those tenants." } },
+    { keywords: ["cc", "copy", "bcc", "notify"],
+      text: "Added — I'll BCC you on every outgoing reminder.",
+      change: { idx: 4, label: "Sends after you approve (BCC to you)", detail: "You get a BCC copy. Logged for the record." } },
+  ],
+  vendor: [
+    { keywords: ["tone", "soft", "gentle", "friendly", "firm"],
+      text: "Updated the tone — follow-ups will stay polite but include a clear deadline reminder.",
+      change: { idx: 2, label: "Drafts a polite but firm follow-up", detail: "Includes a gentle deadline reminder while staying professional." } },
+    { keywords: ["day", "wait", "delay", "time", "sooner", "frequent"],
+      text: "Changed — I'll now follow up after 3 days instead of 5, and check daily instead of Mon/Wed/Fri.",
+      change: { idx: 0, label: "When invoice has no reply for 3+ days", detail: "No-Go AI checks every morning at 9am." } },
+    { keywords: ["amount", "threshold", "limit", "minimum"],
+      text: "Got it — I'll only follow up on invoices over $500. Smaller ones will be skipped.",
+      change: { idx: 1, label: "Checks invoice status (over $500 only)", detail: "Filters out small invoices. Only follows up on amounts over $500." } },
+  ],
+  lease: [
+    { keywords: ["early", "sooner", "advance", "day", "time"],
+      text: "Updated — I'll start the renewal process 90 days before expiry instead of 60.",
+      change: { idx: 0, label: "When a lease expires within 90 days", detail: "No-Go AI checks weekly. Earlier start gives tenants more time to decide." } },
+    { keywords: ["rate", "price", "increase", "raise", "market"],
+      text: "Added — I'll include a market comparison so tenants see the rate is fair.",
+      change: { idx: 2, label: "Drafts renewal with market comparison", detail: "Includes current rate vs comparable units so the offer feels transparent." } },
+    { keywords: ["remind", "follow", "second"],
+      text: "Added a follow-up — if no response in 14 days, I'll send a gentle reminder.",
+      change: null, add: { kind: "step", label: "Follows up after 14 days", detail: "Sends one reminder if the tenant hasn't responded to the renewal offer." } },
+  ],
+  complaint: [
+    { keywords: ["urgent", "emergency", "immediate", "priority"],
+      text: "Updated — urgent complaints (water, gas, safety) will be flagged immediately instead of waiting for the daily check.",
+      change: { idx: 0, label: "Monitors complaints in real-time for urgency", detail: "Safety and utility issues trigger instant alerts. Others batch daily." } },
+    { keywords: ["tone", "empathy", "sorry", "gentle"],
+      text: "Updated the acknowledgment to lead with empathy before confirming assignment.",
+      change: { idx: 4, label: "Sends empathetic acknowledgment", detail: "Leads with understanding, then confirms the issue is being handled." } },
+    { keywords: ["assign", "route", "team", "who"],
+      text: "Added smarter routing — maintenance goes to the vendor, billing to Priya, noise to the property manager.",
+      change: { idx: 2, label: "Routes to the right person automatically", detail: "Maintenance → vendor, billing → Priya, noise → property manager." } },
+  ],
+};
+const WORKFLOW_REPLIES = WORKFLOW_REPLIES_MAP.rent;
 
 const WORKFLOW_DEFAULT_REPLY = "Understood — I've updated the workflow with that change. Take another look at the steps below.";
 
-// Simulation results
-const SIM_RESULTS = {
-  score: 96.4,
-  total: 94,
-  passed: 91,
-  failed: 3,
-  failures: [
-    { tenant: "Unit 7C — David Park", reason: "Tenant has an open maintenance dispute. Reminder could escalate the situation.", suggestion: "Add dispute-detection to the skip list." },
-    { tenant: "Unit 2A — Sarah Chen", reason: "Lease ends in 8 days. Late rent may be intentional move-out.", suggestion: "Cross-check lease end dates before sending." },
-    { tenant: "Unit 15B — James Okafor", reason: "Tenant flagged as hardship case by property manager.", suggestion: "Exclude tenants with hardship flags." },
-  ],
+// Per-workflow simulation results
+const SIM_RESULTS_MAP = {
+  rent: {
+    score: 96.4, total: 94, passed: 91, failed: 3,
+    failures: [
+      { tenant: "Unit 7C — David Park", reason: "Open maintenance dispute. Reminder could escalate.", suggestion: "Add dispute-detection to the skip list." },
+      { tenant: "Unit 2A — Sarah Chen", reason: "Lease ends in 8 days. Late rent may be intentional.", suggestion: "Cross-check lease end dates before sending." },
+      { tenant: "Unit 15B — James Okafor", reason: "Flagged as hardship case.", suggestion: "Exclude tenants with hardship flags." },
+    ],
+  },
+  vendor: {
+    pass1: {
+      score: 82.5, total: 63, passed: 52, failed: 11,
+      failures: [
+        { tenant: "Northline Cleaning — INV-4421", reason: "Invoice is under dispute.", suggestion: "Skip invoices with open disputes." },
+        { tenant: "Park Electric — INV-4398", reason: "Vendor requested a 30-day extension.", suggestion: "Respect extension requests." },
+        { tenant: "Summit HVAC — INV-4455", reason: "Duplicate invoice detected.", suggestion: "Flag duplicates for manual review." },
+        { tenant: "ClearView Windows — INV-4460", reason: "Work not yet completed.", suggestion: "Cross-check work completion." },
+        { tenant: "Apex Plumbing — INV-4472", reason: "Vendor already paid via ACH.", suggestion: "Check payment status before follow-up." },
+        { tenant: "Metro Roofing — INV-4481", reason: "Invoice amount doesn't match PO.", suggestion: "Flag amount mismatches." },
+        { tenant: "ProClean Services — INV-4490", reason: "Contract expired, invoice may be invalid.", suggestion: "Verify active contracts." },
+      ],
+    },
+    score: 94.2, total: 63, passed: 59, failed: 4,
+    failures: [
+      { tenant: "Northline Cleaning — INV-4421", reason: "Invoice is under dispute. Follow-up could complicate resolution.", suggestion: "Skip invoices with open disputes." },
+      { tenant: "Park Electric — INV-4398", reason: "Vendor requested a 30-day extension. Too early to follow up.", suggestion: "Respect extension requests before following up." },
+      { tenant: "Summit HVAC — INV-4455", reason: "Duplicate invoice detected.", suggestion: "Flag duplicates for manual review." },
+      { tenant: "ClearView Windows — INV-4460", reason: "Work not yet completed. Invoice is premature.", suggestion: "Cross-check work completion before following up." },
+    ],
+  },
+  lease: {
+    score: 91.8, total: 38, passed: 35, failed: 3,
+    failures: [
+      { tenant: "Unit 3A — Maria Santos", reason: "Tenant submitted a complaint last week. Bad timing for renewal.", suggestion: "Delay renewal if open complaints exist." },
+      { tenant: "Unit 9C — Robert Kim", reason: "Tenant already notified intent to vacate.", suggestion: "Check for move-out notices before sending renewal." },
+      { tenant: "Unit 6B — Lisa Patel", reason: "Lease terms require legal review (commercial unit).", suggestion: "Flag commercial leases for legal review." },
+    ],
+  },
+  complaint: {
+    score: 87.3, total: 57, passed: 50, failed: 7,
+    failures: [
+      { tenant: "Unit 1A — Tom Wright", reason: "Complaint involves another tenant. Sensitive situation.", suggestion: "Flag tenant-vs-tenant issues for human handling." },
+      { tenant: "Unit 8B — Ana Reyes", reason: "Repeat complaint — third time this month.", suggestion: "Escalate repeat complaints instead of standard ack." },
+      { tenant: "Unit 5C — David Lee", reason: "Complaint mentions legal action.", suggestion: "Route legal mentions directly to management." },
+      { tenant: "Unit 11A — Priya Sharma", reason: "Complaint is vague — can't categorize.", suggestion: "Ask for clarification before routing." },
+      { tenant: "Unit 4B — Ava Thompson", reason: "Complaint about rent increase — billing, not maintenance.", suggestion: "Improve categorization for billing complaints." },
+      { tenant: "Unit 7A — James Wu", reason: "Emergency (gas smell) filed as non-urgent.", suggestion: "Add keyword detection for safety emergencies." },
+      { tenant: "Unit 14C — Karen O'Brien", reason: "Complaint references a prior unresolved issue.", suggestion: "Check complaint history before sending standard ack." },
+    ],
+  },
+};
+const SIM_RESULTS = SIM_RESULTS_MAP.rent;
+
+// Per-workflow running metadata
+const WORKFLOW_RUNNING_META = {
+  rent: { title: "Chasing late rent", schedule: "runs every weekday at 8am", stats: { sent: 148, hours: 31, collected: 92, roi: "6.1x" } },
+  vendor: { title: "Following up with vendors", schedule: "runs Mon/Wed/Fri at 9am", stats: { sent: 63, hours: 14, collected: 38, roi: "4.2x" } },
+  lease: { title: "Lease renewals & paperwork", schedule: "runs weekly on Monday", stats: { sent: 38, hours: 10, collected: 22, roi: "3.8x" } },
+  complaint: { title: "Tenant complaints", schedule: "runs daily at 7am", stats: { sent: 57, hours: 18, collected: 0, roi: "—" } },
 };
 
 const DRAFTS = [
@@ -175,6 +285,8 @@ const STEPS = [
 Object.assign(window, {
   CONNECTOR_CATALOG, CONNECTED_SYSTEMS, SCAN_TARGETS,
   FOUND_LOOPS, RECOMMEND_REASONS, HOW_IT_WORKS,
-  WORKFLOW_REPLIES, WORKFLOW_DEFAULT_REPLY, SIM_RESULTS,
+  WORKFLOW_STEPS, WORKFLOW_REPLIES_MAP, WORKFLOW_REPLIES,
+  WORKFLOW_DEFAULT_REPLY, SIM_RESULTS_MAP, SIM_RESULTS,
+  WORKFLOW_RUNNING_META,
   DRAFTS, SAVINGS, EXPANSION, STEPS,
 });
