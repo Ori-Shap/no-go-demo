@@ -1394,3 +1394,183 @@ h1.display strong { font-weight: 600; }
   padding-top: 20px;
   border-top: 1px solid var(--rule);
 }
+
+/* ===== Mobile responsive ===== */
+@media (max-width: 768px) {
+  /* App shell — hide sidebar, full width */
+  .app {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    display: none;
+  }
+
+  /* Main content — reduce padding */
+  .main {
+    padding: 28px 20px 60px;
+    max-width: 100%;
+  }
+
+  /* Typography — scale down */
+  h1.display {
+    font-size: 32px;
+  }
+  .lede {
+    font-size: 16px;
+  }
+
+  /* Buttons */
+  .btn.lg { height: 52px; padding: 0 24px; font-size: 16px; }
+  .cta-center .btn.lg { height: 56px; padding: 0 28px; font-size: 17px; }
+
+  /* Connect summary */
+  .connect-summary {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Connector grid — 2 columns on mobile */
+  .connector-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* Connected row */
+  .connected-row {
+    flex-wrap: wrap;
+  }
+
+  /* Scan hero — stack vertically */
+  .scan-hero {
+    grid-template-columns: 1fr;
+    padding: 24px;
+    text-align: center;
+  }
+  .scan-hero .big { font-size: 40px; }
+  .scan-ring {
+    width: 150px; height: 150px;
+    margin: 0 auto;
+  }
+  .scan-ring svg { width: 150px; height: 150px; }
+  .scan-ring circle { r: 64; }
+
+  /* Scan list — single column */
+  .scan-list {
+    grid-template-columns: 1fr;
+  }
+
+  /* Suggest values — wrap */
+  .suggest-title { font-size: 20px; }
+  .suggest-values { flex-wrap: wrap; gap: 12px; }
+  .suggest-val-num { font-size: 16px; }
+
+  /* Rec stats — stack */
+  .rec-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .rec-headline {
+    padding: 24px;
+  }
+  .rec-headline h2 { font-size: 28px; }
+
+  /* Chat layout — stack */
+  .chat {
+    grid-template-columns: 1fr;
+  }
+  .chat-pane { min-height: 400px; }
+
+  /* Systems grid */
+  .systems-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modal */
+  .modal {
+    width: 100%;
+    max-width: calc(100vw - 24px);
+    padding: 24px;
+  }
+
+  /* Workflow steps */
+  .sf-row {
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+    padding: 16px 18px;
+  }
+
+  /* Setup chat */
+  .setup-chat-body { max-height: 240px; }
+
+  /* Pipeline stepper */
+  .pipeline-stepper { padding: 20px 16px; gap: 0; }
+  .pipeline-step { min-width: 70px; }
+  .pipeline-step-icon { width: 34px; height: 34px; }
+  .pipeline-arrow { margin: 0 6px; }
+
+  /* Sim results */
+  .sim-result { padding: 20px; }
+  .sim-result-score { font-size: 36px; }
+  .sim-result-counts { flex-wrap: wrap; gap: 12px; }
+
+  /* Running page */
+  .running-card { padding: 18px 20px; }
+  .running-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .running-stat-v { font-size: 22px; }
+  .running-card-title { font-size: 18px; }
+
+  /* Savings */
+  .savings-hero { padding: 28px 24px; }
+  .savings-hero .big { font-size: 56px; }
+  .savings-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Expansion rows */
+  .exp-row {
+    grid-template-columns: 32px 1fr auto;
+    padding: 14px 16px;
+  }
+
+  /* CTA */
+  .cta {
+    padding: 20px;
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  /* Info tooltip — position for mobile */
+  .info-tooltip {
+    width: 180px;
+    right: -8px;
+  }
+
+  /* Rec item grid */
+  .rec-item {
+    grid-template-columns: 24px 32px 1fr auto;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Very small screens */
+  .main { padding: 20px 14px 48px; }
+  h1.display { font-size: 26px; }
+  .connector-list { grid-template-columns: repeat(2, 1fr); }
+  .connector { padding: 12px 8px 10px; }
+  .connector .ic { width: 44px; height: 44px; }
+  .connector .ic img { width: 36px; height: 36px; }
+  .connector .label { font-size: 12px; }
+  .suggest-title { font-size: 18px; }
+  .running-stats { grid-template-columns: 1fr 1fr; }
+  .pipeline-arrow svg { width: 16px; }
+  .pipeline-step-label { font-size: 11px; }
+  .btn { font-size: 14px; height: 46px; padding: 0 18px; }
+  .btn.lg { height: 48px; padding: 0 20px; font-size: 15px; }
+}
