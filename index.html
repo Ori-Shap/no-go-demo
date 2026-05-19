@@ -10,19 +10,19 @@
   <style>
     * { box-sizing: border-box; margin: 0; }
     html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
-    body { font-family: "Source Serif 4", Georgia, serif; background: #f5f3f0; color: #1e1f21; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.5; overflow-x: hidden; }
+    body { font-family: "Source Serif 4", Georgia, serif; background: #f0f2f8; color: #212354; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.5; overflow-x: hidden; }
 
     :root {
-      --ink: #1e1f21; --ink-2: #6b6e5d; --ink-3: #b0a899;
-      --primary: #1c4d5a; --primary-hover: #163f4a;
-      --bg: #f5f3f0; --bg-2: #edebe7; --paper: #fbfaf8;
-      --rule: #ddd7ce;
-      --go: #7a9a68; --go-soft: #e8f0e2;
-      --gold: #cfc07c; --gold-soft: #f5f0dc;
+      --ink: #212354; --ink-2: #4a4c7a; --ink-3: #8688a8;
+      --primary: #3E54E8; --primary-hover: #2a3fc0;
+      --bg: #f0f2f8; --bg-2: #e4e7f0; --paper: #f8f9fc;
+      --rule: #d4d6e4;
+      --go: #3E54E8; --go-soft: #e8ecff;
+      --gold: #6081FF; --gold-soft: #e8ecff;
     }
 
     /* Nav */
-    .nav { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 12px 32px; z-index: 40; background: rgba(245,243,240,0.88); backdrop-filter: blur(12px); }
+    .nav { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 12px 32px; z-index: 40; background: rgba(240,242,245,0.88); backdrop-filter: blur(12px); }
     .nav-brand { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; text-decoration: none; color: var(--ink); }
     .nav-mark { width: 28px; height: 28px; border-radius: 8px; background: var(--primary); display: grid; place-items: center; }
     .nav-mark::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2.5px var(--paper) inset, 0 0 0 4px var(--primary) inset; }
@@ -52,32 +52,126 @@
     .reveal.faded { opacity: 0.06; transform: translateY(-10px); }
     .reveal-d1 { transition-delay: 0.1s; } .reveal-d2 { transition-delay: 0.2s; } .reveal-d3 { transition-delay: 0.3s; } .reveal-d4 { transition-delay: 0.4s; }
 
+    /* ===== Panel 0: Splash ===== */
+    /* Electric blue palette — #212354 / #3E54E8 / #3E66F9 / #6081FF / #89F3FF */
+    .splash {
+      background: #212354;
+      color: #e8ecff;
+      position: relative;
+      overflow: hidden;
+    }
+    .splash-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(62,102,249,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(62,102,249,0.1) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
+      animation: grid-pulse 6s ease-in-out infinite;
+    }
+    @keyframes grid-pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+    .splash-content {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+    }
+    .splash-mark {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: #3E54E8;
+      display: grid; place-items: center;
+      margin-bottom: 28px;
+      position: relative;
+      box-shadow: 0 0 40px rgba(62,84,232,0.25);
+    }
+    .splash-mark::before {
+      content: "";
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #89F3FF;
+      box-shadow: 0 0 0 3px #212354 inset, 0 0 0 5px #3E54E8 inset;
+    }
+    .splash-mark::after {
+      content: "";
+      position: absolute;
+      inset: -20px;
+      border-radius: 22px;
+      border: 1px solid rgba(62,102,249,0.25);
+      animation: mark-glow 3s ease-in-out infinite;
+    }
+    @keyframes mark-glow {
+      0%, 100% { border-color: rgba(62,102,249,0.15); transform: scale(1); }
+      50% { border-color: rgba(62,102,249,0.45); transform: scale(1.05); }
+    }
+    .splash-name {
+      font-size: 96px;
+      font-weight: 300;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0;
+      color: #ffffff;
+    }
+    .splash-line {
+      width: 48px; height: 1px;
+      background: linear-gradient(90deg, transparent, #6081FF, transparent);
+      margin: 32px 0;
+    }
+    .splash-phrase {
+      font-size: 18px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #89F3FF;
+      margin: 0;
+    }
+    .splash-scroll {
+      position: absolute;
+      bottom: 32px; left: 50%;
+      transform: translateX(-50%);
+      color: rgba(137,243,255,0.2);
+      animation: float 2.5s ease-in-out infinite;
+    }
+
+    @media (max-width: 768px) {
+      .splash-name { font-size: 56px; }
+      .splash-phrase { font-size: 14px; letter-spacing: 0.08em; }
+      .splash-grid { background-size: 50px 50px; }
+    }
+    @media (max-width: 480px) {
+      .splash-name { font-size: 42px; }
+    }
+
     /* ===== Panel 1: Hero (dark) ===== */
     .hero {
       text-align: center; padding: 0 32px;
-      background: #1e1f21;
-      color: #f5f3f0;
+      background: #212354;
+      color: #f0f2f8;
       position: relative; overflow: hidden;
     }
     .hero-tagline { font-size: 18px; font-weight: 400; letter-spacing: 0.02em; color: var(--gold); margin-bottom: 24px; }
-    .hero-title { font-size: 76px; font-weight: 300; line-height: 1.02; letter-spacing: -0.035em; max-width: 780px; margin: 0 auto 24px; color: #f5f3f0; }
+    .hero-title { font-size: 76px; font-weight: 300; line-height: 1.02; letter-spacing: -0.035em; max-width: 780px; margin: 0 auto 24px; color: #f0f2f8; }
     .hero-title strong { font-weight: 700; color: white; }
-    .hero-sub { font-size: 19px; font-weight: 300; color: rgba(245,243,240,0.55); margin: 0 auto 40px; max-width: 480px; }
+    .hero-sub { font-size: 19px; font-weight: 300; color: rgba(240,242,245,0.55); margin: 0 auto 40px; max-width: 480px; }
     .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .hero .btn.lg { background: white; color: #1e1f21; border-color: white; }
+    .hero .btn.lg { background: white; color: #212354; border-color: white; }
     .hero .btn.lg:hover { background: #edebe7; }
-    .hero .btn.ghost-hero { background: transparent; color: rgba(245,243,240,0.7); border-color: rgba(245,243,240,0.2); }
-    .hero .btn.ghost-hero:hover { background: rgba(245,243,240,0.08); color: white; }
+    .hero .btn.ghost-hero { background: transparent; color: rgba(240,242,245,0.7); border-color: rgba(240,242,245,0.2); }
+    .hero .btn.ghost-hero:hover { background: rgba(240,242,245,0.08); color: white; }
 
-    .scroll-hint { margin-top: 48px; color: rgba(245,243,240,0.3); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; animation: float 2.5s ease-in-out infinite; }
+    .scroll-hint { margin-top: 48px; color: rgba(240,242,245,0.3); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; animation: float 2.5s ease-in-out infinite; }
     @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
     /* Nav goes transparent on dark hero */
     .nav { background: rgba(30,31,33,0.7); backdrop-filter: blur(12px); }
-    .nav-brand { color: #f5f3f0; }
-    .nav .btn.ghost.sm { color: rgba(245,243,240,0.7); border-color: rgba(245,243,240,0.2); }
-    .nav .btn.ghost.sm:hover { background: rgba(245,243,240,0.08); color: white; }
-    .nav .btn.sm:not(.ghost) { background: white; color: #1e1f21; border-color: white; }
+    .nav-brand { color: #f0f2f8; }
+    .nav .btn.ghost.sm { color: rgba(240,242,245,0.7); border-color: rgba(240,242,245,0.2); }
+    .nav .btn.ghost.sm:hover { background: rgba(240,242,245,0.08); color: white; }
+    .nav .btn.sm:not(.ghost) { background: white; color: #212354; border-color: white; }
     .nav .btn.sm:not(.ghost):hover { background: #edebe7; }
 
     /* ===== Panel 2: Pipeline ===== */
@@ -130,7 +224,7 @@
       background: var(--go-soft);
     }
     .mockup-gradient-blue {
-      background: #dfeef2;
+      background: #e8ecff;
     }
     .mockup-gradient-gold {
       background: var(--gold-soft);
@@ -146,7 +240,7 @@
     .mockup-item .meta { font-size: 11px; color: var(--ink-3); font-weight: 300; }
     .mockup-item .pill-sm { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
     .mockup-item .pill-sm.green { background: var(--go-soft); color: var(--go); }
-    .mockup-item .pill-sm.gold { background: var(--gold-soft); color: #9a8a3a; }
+    .mockup-item .pill-sm.gold { background: var(--gold-soft); color: #3E66F9; }
     .mockup-bar { height: 6px; border-radius: 3px; background: var(--bg-2); margin: 8px 0; }
     .mockup-bar-fill { height: 100%; border-radius: 3px; }
     .mockup-bar-fill.green { background: var(--go); }
@@ -166,17 +260,17 @@
     .trust-item { display: flex; gap: 14px; align-items: flex-start; padding: 16px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; }
     .trust-item-icon { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; }
     .trust-item-icon.green { background: var(--go-soft); color: var(--go); }
-    .trust-item-icon.gold { background: var(--gold-soft); color: #9a8a3a; }
-    .trust-item-icon.blue { background: #dfeef2; color: var(--primary); }
+    .trust-item-icon.gold { background: var(--gold-soft); color: #3E66F9; }
+    .trust-item-icon.blue { background: #e8ecff; color: var(--primary); }
     .trust-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
     .trust-item p { font-size: 13px; font-weight: 300; color: var(--ink-2); }
 
     /* ===== Panel 4: Dark close ===== */
-    .dark-close { background: #1e1f21; color: white; text-align: center; padding: 0 32px; }
+    .dark-close { background: #212354; color: white; text-align: center; padding: 0 32px; }
     .dark-inner { max-width: 640px; margin: 0 auto; }
     .dark-close .big-line { font-size: 36px; font-weight: 300; line-height: 1.2; letter-spacing: -0.02em; }
     .dark-close .big-line strong { font-weight: 700; }
-    .dark-close .sub-line { font-size: 16px; font-weight: 300; color: #b0a899; margin-top: 14px; margin-bottom: 36px; }
+    .dark-close .sub-line { font-size: 16px; font-weight: 300; color: #8688a8; margin-top: 14px; margin-bottom: 36px; }
 
     /* Footer */
     .footer { padding: 20px 32px; text-align: center; font-size: 11px; font-weight: 300; color: var(--ink-3); border-top: 1px solid var(--rule); scroll-snap-align: none; }
@@ -189,7 +283,7 @@
     .modal input { width: 100%; height: 44px; padding: 0 14px; border: 1px solid var(--rule); border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 400; background: var(--bg-2); color: var(--ink); outline: none; text-align: center; letter-spacing: 0.04em; }
     .modal input:focus { border-color: var(--primary); }
     .modal input::placeholder { color: var(--ink-3); letter-spacing: 0; }
-    .modal .error { font-size: 12px; color: #8b2332; margin-top: 6px; min-height: 18px; }
+    .modal .error { font-size: 12px; color: #e04355; margin-top: 6px; min-height: 18px; }
     .modal .actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
 
     @keyframes fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -219,6 +313,20 @@
   </style>
 </head>
 <body>
+
+  <!-- Panel 0: Splash -->
+  <section class="panel splash" id="splash">
+    <div class="splash-grid"></div>
+    <div class="splash-content">
+      <div class="splash-mark"></div>
+      <h1 class="splash-name">No-Go AI</h1>
+      <div class="splash-line"></div>
+      <p class="splash-phrase">Bridging the AI trust gap</p>
+    </div>
+    <div class="splash-scroll">
+      <svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1l6 6 6-6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </section>
 
   <!-- Nav -->
   <nav class="nav">
@@ -281,11 +389,11 @@
               <span class="feature-pill">Rank by ROI</span>
             </div>
           </div>
-          <div class="mockup" style="background: #e8e2d9;">
-            <div class="mockup-header"><span class="dot" style="background: #1c4d5a;"></span> 4 workflows found</div>
-            <div class="mockup-item"><span class="name">Chasing late rent</span><span class="pill-sm" style="background:#dfeef2;color:#1c4d5a;">94x/mo</span></div>
-            <div class="mockup-item"><span class="name">Vendor follow-ups</span><span class="pill-sm" style="background:#dfeef2;color:#1c4d5a;">63x/mo</span></div>
-            <div class="mockup-item"><span class="name">Lease renewals</span><span class="pill-sm" style="background:#f5f0dc;color:#9a8a3a;">38x/mo</span></div>
+          <div class="mockup" style="background: #e4e7f0;">
+            <div class="mockup-header"><span class="dot" style="background: #3E54E8;"></span> 4 workflows found</div>
+            <div class="mockup-item"><span class="name">Chasing late rent</span><span class="pill-sm" style="background:#e8ecff;color:#3E54E8;">94x/mo</span></div>
+            <div class="mockup-item"><span class="name">Vendor follow-ups</span><span class="pill-sm" style="background:#e8ecff;color:#3E54E8;">63x/mo</span></div>
+            <div class="mockup-item"><span class="name">Lease renewals</span><span class="pill-sm" style="background:#e8ecff;color:#3E66F9;">38x/mo</span></div>
             <div class="mockup-item"><span class="name">Tenant complaints</span><span class="meta">57x/mo</span></div>
           </div>
         </div>
@@ -302,15 +410,15 @@
               <span class="feature-pill">Simulate</span>
             </div>
           </div>
-          <div class="mockup" style="background: #e8e2d9;">
-            <div class="mockup-header"><span class="dot" style="background: #1c4d5a;"></span> Simulation complete</div>
-            <div style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: #1c4d5a;">96.4%</div>
-            <div style="font-size: 12px; font-weight: 300; color: #b0a899; margin-bottom: 10px;">success rate</div>
-            <div class="mockup-bar"><div class="mockup-bar-fill" style="width: 96.4%; background: #546670;"></div></div>
+          <div class="mockup" style="background: #e4e7f0;">
+            <div class="mockup-header"><span class="dot" style="background: #3E54E8;"></span> Simulation complete</div>
+            <div style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: #3E54E8;">96.4%</div>
+            <div style="font-size: 12px; font-weight: 300; color: #8688a8; margin-bottom: 10px;">success rate</div>
+            <div class="mockup-bar"><div class="mockup-bar-fill" style="width: 96.4%; background: #6081FF;"></div></div>
             <div class="mockup-stat-row">
               <div class="mockup-stat"><div class="mockup-stat-v">94</div><div class="mockup-stat-k">tested</div></div>
-              <div class="mockup-stat"><div class="mockup-stat-v" style="color: #1c4d5a;">91</div><div class="mockup-stat-k">passed</div></div>
-              <div class="mockup-stat"><div class="mockup-stat-v" style="color: #8b2332;">3</div><div class="mockup-stat-k">failed</div></div>
+              <div class="mockup-stat"><div class="mockup-stat-v" style="color: #3E54E8;">91</div><div class="mockup-stat-k">passed</div></div>
+              <div class="mockup-stat"><div class="mockup-stat-v" style="color: #e04355;">3</div><div class="mockup-stat-k">failed</div></div>
             </div>
           </div>
         </div>
@@ -327,14 +435,14 @@
               <span class="feature-pill">Learn</span>
             </div>
           </div>
-          <div class="mockup" style="background: #e8e2d9;">
-            <div class="mockup-header"><span class="dot" style="background: #cfc07c;"></span> This month</div>
+          <div class="mockup" style="background: #e4e7f0;">
+            <div class="mockup-header"><span class="dot" style="background: #6081FF;"></span> This month</div>
             <div class="mockup-chat">Hi Abigail, I drafted a late rent reminder for Ava Thompson. Want me to send it?</div>
-            <div class="mockup-chat reply" style="background: #1c4d5a;">Send it</div>
-            <div class="mockup-stat-row" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #ddd7ce;">
+            <div class="mockup-chat reply" style="background: #3E54E8;">Send it</div>
+            <div class="mockup-stat-row" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #d4d6e4;">
               <div class="mockup-stat"><div class="mockup-stat-v">148</div><div class="mockup-stat-k">sent</div></div>
               <div class="mockup-stat"><div class="mockup-stat-v">31h</div><div class="mockup-stat-k">saved</div></div>
-              <div class="mockup-stat"><div class="mockup-stat-v" style="color:#1c4d5a;">$92k</div><div class="mockup-stat-k">collected</div></div>
+              <div class="mockup-stat"><div class="mockup-stat-v" style="color:#3E54E8;">$92k</div><div class="mockup-stat-k">collected</div></div>
             </div>
           </div>
         </div>
