@@ -1,34 +1,34 @@
 /* No-Go AI — Abigail edition. WhatsApp-simple. */
 
 :root {
-  --bg: #f5f3f0;                          /* Cloud Dancer */
-  --bg-2: #edebe7;                        /* slightly darker */
-  --paper: #fbfaf8;                       /* white-ish Cloud Dancer */
-  --ink: #1e1f21;                         /* Stretch Limo */
-  --ink-2: #6b6e5d;                       /* Hematite */
-  --ink-3: #b0a899;                       /* Cloud Cover */
-  --ink-4: #ccc5bb;                       /* lighter Cloud Cover */
-  --rule: #ddd7ce;                        /* warm light */
-  --rule-2: #ccc5bb;                      /* warm medium */
+  --bg: #f0f2f8;                          /* cool off-white */
+  --bg-2: #e4e7f0;                        /* slightly darker */
+  --paper: #f8f9fc;                       /* near white */
+  --ink: #212354;                         /* deep indigo */
+  --ink-2: #4a4c7a;                       /* mid indigo */
+  --ink-3: #8688a8;                       /* muted indigo */
+  --ink-4: #b0b2c8;                       /* light indigo */
+  --rule: #d4d6e4;                        /* cool rule */
+  --rule-2: #c0c2d4;                      /* medium rule */
 
-  --mint: #ddd7ce;                        /* warm rule — connected state bg */
-  --mint-deep: #1c4d5a;                   /* Dragonfly — success accent */
-  --mint-soft: #e8e2d9;                   /* Cloud Cover light — soft bg */
-  --baltic: #1c4d5a;                      /* Dragonfly */
-  --baltic-deep: #1c4d5a;                /* Dragonfly */
-  --baltic-soft: #e8e2d9;                 /* Cloud Cover light */
-  --gold: #cfc07c;                        /* Golden Mist */
-  --gold-deep: #9a8a3a;                   /* Golden Mist deeper */
-  --gold-soft: #f5f0dc;                   /* Golden Mist light */
-  --cloud: #b0a899;                       /* Cloud Cover */
-  --cloud-soft: #e8e2d9;                  /* lighter Cloud Cover */
+  --mint: #d4d6e4;                        /* rule — connected state bg */
+  --mint-deep: #3E54E8;                   /* electric blue — accent */
+  --mint-soft: #e4e7f0;                   /* soft bg */
+  --baltic: #3E54E8;                      /* electric blue */
+  --baltic-deep: #3E54E8;
+  --baltic-soft: #e4e7f0;
+  --gold: #6081FF;                        /* soft blue */
+  --gold-deep: #3E66F9;                   /* bright blue */
+  --gold-soft: #e8ecff;                   /* very light blue */
+  --cloud: #8688a8;                       /* muted */
+  --cloud-soft: #e4e7f0;
 
-  --primary: #1c4d5a;                     /* Dragonfly */
-  --primary-soft: #e8e2d9;                /* Cloud Cover light */
-  --go: #1c4d5a;                          /* Dragonfly — success */
-  --go-soft: #e8e2d9;                     /* Cloud Cover light */
-  --wait: #9a8a3a;                        /* Golden Mist deeper */
-  --wait-soft: #f5f0dc;                   /* Golden Mist light */
+  --primary: #3E54E8;                     /* electric blue */
+  --primary-soft: #e8ecff;                /* light blue bg */
+  --go: #3E54E8;                          /* electric blue — success */
+  --go-soft: #e8ecff;                     /* light blue */
+  --wait: #6081FF;                        /* medium blue */
+  --wait-soft: #e8ecff;                   /* light blue */
 
   --shadow-1: 0 1px 2px 0 rgba(30, 31, 33, 0.05);
   --shadow-2: 0 8px 24px -8px rgba(30, 31, 33, 0.12);
@@ -132,7 +132,7 @@ body {
 .sidebar-badge {
   min-width: 18px; height: 18px;
   border-radius: 999px;
-  background: #8b2332;
+  background: #e04355;
   color: #fff;
   font-size: 11px;
   font-weight: 600;
@@ -215,7 +215,7 @@ h1.display strong { font-weight: 600; }
   gap: 10px;
   transition: transform 80ms, background 120ms;
 }
-.btn:hover { background: #163f4a; }
+.btn:hover { background: #2a3fc0; }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn.ghost {
@@ -252,7 +252,7 @@ h1.display strong { font-weight: 600; }
   font-weight: 500;
 }
 .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
-.pill.go { background: var(--mint-soft); color: #1c4d5a; }
+.pill.go { background: var(--mint-soft); color: #3E54E8; }
 .pill.go .dot { background: var(--mint-deep); }
 .pill.wait { background: var(--gold-soft); color: #9a8a3a; }
 .pill.wait .dot { background: var(--gold-deep); }
@@ -784,7 +784,7 @@ h1.display strong { font-weight: 600; }
   border-top: 1px solid var(--mint);
   display: flex; align-items: center; gap: 12px;
   font-size: 14px;
-  color: #1c4d5a;
+  color: #3E54E8;
 }
 .chat-handled .ic {
   width: 24px; height: 24px; border-radius: 50%;
@@ -1302,7 +1302,7 @@ h1.display strong { font-weight: 600; }
   font-size: 14px; letter-spacing: 0.02em;
   padding: 5px 12px; border-radius: 100px;
   background: var(--mint-soft);
-  color: #1c4d5a;
+  color: #3E54E8;
   vertical-align: middle;
   margin-left: 14px;
   position: relative; top: -6px;
@@ -1335,7 +1335,7 @@ h1.display strong { font-weight: 600; }
 .chat-handled.auto {
   background: #e8e2d9;
   border-top-color: var(--baltic);
-  color: #1c4d5a;
+  color: #3E54E8;
 }
 .chat-handled.auto .ic {
   background: var(--baltic-deep);
@@ -1361,7 +1361,7 @@ h1.display strong { font-weight: 600; }
   padding: 2px 6px;
   border-radius: 4px;
   background: #e8e2d9;
-  color: #1c4d5a;
+  color: #3E54E8;
   border: 1px solid #b8d4dc;
 }
 
@@ -1429,7 +1429,7 @@ h1.display strong { font-weight: 600; }
   font-size: 12px; font-weight: 700;
   margin-top: 1px;
 }
-.trust-list li .ic.ok { background: var(--mint); color: #1c4d5a; }
+.trust-list li .ic.ok { background: var(--mint); color: #3E54E8; }
 .trust-list li .ic.alert { background: var(--gold-soft); color: #9a8a3a; border: 1px solid var(--gold); }
 
 .trust-undo {

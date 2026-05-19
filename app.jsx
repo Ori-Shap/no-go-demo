@@ -5,8 +5,8 @@ const { useState: useAppState, useEffect: useAppEffect } = React;
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "connectAll": false,
   "autoAdvance": false,
-  "primaryColor": "#1c4d5a",
-  "accentColor": "#1c4d5a",
+  "primaryColor": "#3E54E8",
+  "accentColor": "#3E54E8",
   "fontScale": 1.0,
   "skipToScreen": "connect"
 }/*EDITMODE-END*/;

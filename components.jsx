@@ -227,10 +227,10 @@ function Connect({ onDone, connectAllTrigger, autoAdvance, connected, setConnect
             </div>
             <div className="scan-ring">
               <svg width="200" height="200" viewBox="0 0 200 200">
-                <circle cx="100" cy="100" r="86" fill="none" stroke="#ddd7ce" strokeWidth="14" />
+                <circle cx="100" cy="100" r="86" fill="none" stroke="#d4d6e4" strokeWidth="14" />
                 <circle
                   cx="100" cy="100" r="86" fill="none"
-                  stroke="#1c4d5a" strokeWidth="14"
+                  stroke="#3E54E8" strokeWidth="14"
                   strokeDasharray={2 * Math.PI * 86}
                   strokeDashoffset={2 * Math.PI * 86 * (1 - progress)}
                   strokeLinecap="round"
@@ -1126,7 +1126,7 @@ function Running({ deployed, onBackToRecommend, onOpenWhatsApp }) {
         <div style={{ fontSize: 24, lineHeight: 1.3, letterSpacing: "-0.015em", fontWeight: 300 }}>
           No-Go AI learns your work, asks before it acts, and proves it saved you time.
         </div>
-        <div style={{ marginTop: 12, fontSize: 15, fontWeight: 300, color: "#b0a899" }}>
+        <div style={{ marginTop: 12, fontSize: 15, fontWeight: 300, color: "#8688a8" }}>
           We don't sell AI. We sell ROI.
         </div>
       </div>

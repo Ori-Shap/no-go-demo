@@ -4,29 +4,29 @@
 */
 
 :root {
-  /* neutrals — Pantone palette */
-  --bg: #f5f3f0;            /* Cloud Dancer */
-  --paper: #fbfaf8;
-  --bg-2: #edebe7;          /* slightly darker */
-  --ink: #1e1f21;           /* Stretch Limo */
-  --ink-2: #6b6e5d;         /* Hematite */
-  --ink-3: #b0a899;         /* Cloud Cover */
-  --ink-4: #ccc5bb;         /* lighter Cloud Cover */
-  --moon: #b0a899;          /* Cloud Cover */
-  --rule: #ddd7ce;
-  --rule-2: #ccc5bb;
+  /* neutrals — electric blue palette */
+  --bg: #f0f2f8;
+  --paper: #f8f9fc;
+  --bg-2: #e4e7f0;
+  --ink: #212354;
+  --ink-2: #4a4c7a;
+  --ink-3: #8688a8;
+  --ink-4: #b0b2c8;
+  --moon: #8688a8;
+  --rule: #d4d6e4;
+  --rule-2: #c0c2d4;
 
-  /* accents — Pantone palette */
-  --red: #1c4d5a;           /* Dragonfly — primary accent */
-  --red-deep: #163f4a;      /* Dragonfly darker */
-  --red-soft: #e8e2d9;      /* Cloud Cover light */
-  --teal: #1c4d5a;          /* Dragonfly */
-  --teal-soft: #e8e2d9;
-  --olive: #546670;         /* Blue Fusion */
-  --taupe: #b0a899;         /* Cloud Cover / Satin Slipper */
-  --gold: #cfc07c;          /* Golden Mist */
-  --gold-deep: #9a8a3a;     /* Golden Mist deeper */
-  --scarlet: #8b2332;       /* Scarlet Smile — errors only */
+  /* accents — electric blue */
+  --red: #3E54E8;           /* electric blue — primary accent */
+  --red-deep: #2a3fc0;
+  --red-soft: #e8ecff;
+  --teal: #3E54E8;
+  --teal-soft: #e8ecff;
+  --olive: #6081FF;
+  --taupe: #8688a8;
+  --gold: #6081FF;
+  --gold-deep: #3E66F9;
+  --scarlet: #e04355;
 
   /* type — unified Source Serif 4 */
   --serif: "Source Serif 4", "Source Serif Pro", Georgia, serif;
@@ -373,7 +373,7 @@ deck-stage > section {
 .market-card.us .stamp { color: var(--red); border-color: rgba(255,255,255,0.12); }
 .market-card.us .stamp .dot {
   background: var(--red);
-  box-shadow: 0 0 0 5px rgba(28,77,90,0.25);
+  box-shadow: 0 0 0 5px rgba(62,84,232,0.25);
 }
 
 /* =================================================================
