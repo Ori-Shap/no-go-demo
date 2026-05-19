@@ -532,96 +532,101 @@
   </section>
 
 
-  <!-- ─────────── 11 · COMPETITION ─────────── -->
+  <!-- ─────────── 11 · COMPETITION (X/Y) ─────────── -->
   <section data-screen-label="11 Competition">
     <div class="chrome-top">
       <div class="brand-row"><span class="brand-mark"></span> No-Go AI</div>
       <span>11 &middot; Competition</span>
     </div>
 
-    <div class="head-block">
+    <div class="head-block" style="gap:10px;">
       <div class="eyebrow"><span class="num">10</span><span>Competition</span></div>
-      <h2 style="font-family:var(--serif); font-size:72px; line-height:0.94; letter-spacing:-0.035em; font-weight:400; margin:0;">Nobody owns the SMB <em style="color:var(--red);">operating layer</em>.</h2>
+      <h2 style="font-family:var(--serif); font-size:52px; line-height:0.96; letter-spacing:-0.03em; font-weight:400; margin:0; max-width:32ch;">Most tools automate known workflows. No-Go AI uncovers <em style="color:var(--red);">hidden business work</em>.</h2>
+      <p style="font-size:20px; color:var(--ink-2); max-width:64ch; line-height:1.3; margin-top:2px;">No-Go AI helps operators discover where AI should start, deploy safe workflows, and compound into AI-powered operations.</p>
     </div>
 
-    <div class="comp" style="margin: 24px 0px -20px; border-radius: 18px">
-      <div class="comp-row head">
-        <div class="cell">Capability</div>
-        <div class="cell">Work<br/>discovery</div>
-        <div class="cell">ROI &amp;<br/>readiness</div>
-        <div class="cell">Workflow<br/>deployment</div>
-        <div class="cell">Savings<br/>measurement</div>
-        <div class="cell">SMB-<br/>native</div>
-        <div class="cell">Cross-system<br/>Work Graph</div>
+    <!-- X/Y Chart -->
+    <div style="position:relative; flex:1; margin:12px 0 0; min-height:0;">
+
+      <!-- Chart area -->
+      <div style="position:absolute; left:120px; bottom:56px; right:20px; top:0;">
+
+        <!-- Axes -->
+        <div style="position:absolute; bottom:0; left:0; right:0; height:1.5px; background:var(--rule-2);"></div>
+        <div style="position:absolute; bottom:0; left:0; top:0; width:1.5px; background:var(--rule-2);"></div>
+
+        <!-- Quadrant lines -->
+        <div style="position:absolute; bottom:0; left:50%; top:0; border-left:2px dashed var(--rule-2); opacity:0.7;"></div>
+        <div style="position:absolute; left:0; right:0; top:50%; border-top:2px dashed var(--rule-2); opacity:0.7;"></div>
+
+        <!-- Arrows -->
+        <div style="position:absolute; bottom:-6px; right:-4px; color:var(--ink-4); font-size:20px;">&rarr;</div>
+        <div style="position:absolute; top:-6px; left:-8px; color:var(--ink-4); font-size:20px;">&uarr;</div>
+
+        <!-- Top-right shaded region -->
+        <div style="position:absolute; right:0; top:0; width:48%; height:48%; background:rgba(28,77,90,0.03); border-radius:0 0 0 24px;"></div>
+        <div style="position:absolute; right:8px; top:8px; font-family:var(--mono); font-size:11px; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-4);">Gateway to AI-powered operations</div>
+
+        <!-- ===== Competitors ===== -->
+
+        <!-- Bottom-left: Automation builders -->
+        <div style="position:absolute; left:8%; bottom:6%;">
+          <div style="width:12px; height:12px; border-radius:50%; background:var(--ink-3); margin-bottom:6px;"></div>
+          <div style="font-family:var(--sans); font-size:17px; font-weight:500;">Automation builders</div>
+          <div style="font-family:var(--mono); font-size:12px; color:var(--ink-4); margin-top:2px;">Zapier &middot; Make &middot; Workato &middot; n8n &middot; Blocks DIY</div>
+        </div>
+
+        <!-- Left-lower-middle: Copilots -->
+        <div style="position:absolute; left:5%; bottom:24%;">
+          <div style="width:12px; height:12px; border-radius:50%; background:var(--ink-3); margin-bottom:6px;"></div>
+          <div style="font-family:var(--sans); font-size:17px; font-weight:500;">Copilots</div>
+          <div style="font-family:var(--mono); font-size:12px; color:var(--ink-4); margin-top:2px;">ChatGPT &middot; Claude &middot; Gemini &middot; Copilot</div>
+        </div>
+
+        <!-- Middle-left: Systems of record -->
+        <div style="position:absolute; left:26%; bottom:14%;">
+          <div style="width:12px; height:12px; border-radius:50%; background:var(--ink-3); margin-bottom:6px;"></div>
+          <div style="font-family:var(--sans); font-size:17px; font-weight:500;">Systems of record</div>
+          <div style="font-family:var(--mono); font-size:12px; color:var(--ink-4); margin-top:2px;">QuickBooks &middot; Xero &middot; AppFolio &middot; HubSpot</div>
+        </div>
+
+        <!-- Center / upper-center: Process mining -->
+        <div style="position:absolute; left:40%; bottom:62%;">
+          <div style="width:12px; height:12px; border-radius:50%; background:var(--ink-3); margin-bottom:6px;"></div>
+          <div style="font-family:var(--sans); font-size:17px; font-weight:500;">Process mining / RPA</div>
+          <div style="font-family:var(--mono); font-size:12px; color:var(--ink-4); margin-top:2px;">Celonis &middot; UiPath</div>
+        </div>
+
+        <!-- Bottom-right center: Enterprise AI -->
+        <div style="position:absolute; left:68%; bottom:20%;">
+          <div style="width:12px; height:12px; border-radius:50%; background:var(--ink-3); margin-bottom:6px;"></div>
+          <div style="font-family:var(--sans); font-size:17px; font-weight:500;">Enterprise AI platforms</div>
+          <div style="font-family:var(--mono); font-size:12px; color:var(--ink-4); margin-top:2px;">Wonderful &middot; Unframe &middot; Agentforce &middot; ServiceNow</div>
+        </div>
+
+        <!-- ===== NO-GO AI — top right, isolated ===== -->
+        <div style="position:absolute; right:2%; top:6%; text-align:right;">
+          <!-- Halo -->
+          <div style="position:absolute; top:50%; right:50%; width:240px; height:240px; border-radius:50%; background:rgba(28,77,90,0.05); transform:translate(50%,-50%); pointer-events:none;"></div>
+          <!-- Dot -->
+          <div style="width:26px; height:26px; border-radius:50%; background:var(--red); box-shadow:0 0 0 10px rgba(28,77,90,0.10); margin-left:auto; margin-bottom:10px;"></div>
+          <div style="position:relative;">
+            <div style="font-family:var(--serif); font-size:40px; font-weight:500; letter-spacing:-0.02em; color:var(--red);">No-Go AI</div>
+            <div style="font-family:var(--sans); font-size:15px; color:var(--ink-2); max-width:380px; margin-top:8px; line-height:1.35; margin-left:auto;">Discovers hidden business work, identifies what AI can do today, and helps operators become AI-powered.</div>
+          </div>
+        </div>
       </div>
 
-      <div class="comp-row us">
-        <div class="cell"><div class="who">No-Go AI <small>SMB gateway to AI-powered ops</small></div></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-      </div>
+      <!-- Y-axis labels -->
+      <div style="position:absolute; top:0; left:0; width:110px; font-family:var(--mono); font-size:14px; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-3); text-align:right; line-height:1.3;">Hidden<br/>business work</div>
+      <div style="position:absolute; bottom:60px; left:0; width:110px; font-family:var(--mono); font-size:14px; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-3); text-align:right; line-height:1.3;">Known<br/>workflows</div>
 
-      <div class="comp-row">
-        <div class="cell"><div class="who">Copilots <small>ChatGPT &middot; Copilot &middot; Gemini &middot; Claude</small></div></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-      </div>
-      <div class="comp-row">
-        <div class="cell"><div class="who">Automation / AI app builders <small>Zapier &middot; Make &middot; n8n &middot; Blocks DIY</small></div></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-      </div>
-      <div class="comp-row">
-        <div class="cell"><div class="who">Process mining / RPA <small>Celonis &middot; UiPath &middot; Power Automate &middot; AA</small></div></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-      </div>
-      <div class="comp-row">
-        <div class="cell"><div class="who">Enterprise AI platforms <small>Wonderful &middot; Unframe &middot; Agentforce &middot; ServiceNow</small></div></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-      </div>
-      <div class="comp-row">
-        <div class="cell"><div class="who">Systems of record <small>QuickBooks &middot; Xero &middot; AppFolio &middot; HubSpot</small></div></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-      </div>
-      <div class="comp-row">
-        <div class="cell"><div class="who">Consultants / MSPs <small>Accenture &middot; Deloitte &middot; local MSPs &middot; outsourced CFOs</small></div></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark yes">&#x2713;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark partial">&#x25D0;</span></div>
-        <div class="cell"><span class="mark no">&mdash;</span></div>
-      </div>
+      <!-- X-axis labels -->
+      <div style="position:absolute; bottom:24px; left:120px; font-family:var(--mono); font-size:14px; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-3);">Builder-first</div>
+      <div style="position:absolute; bottom:24px; right:20px; font-family:var(--mono); font-size:14px; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-3);">Operator-first</div>
     </div>
 
-    <div class="chrome-bot"><span>Others help individuals, automate known workflows, serve enterprises, or operate as services.<br/>We own the SMB gateway.</span><span>11 / 13</span></div>
+    <div class="chrome-bot"><span>Others help users automate what is already obvious. No-Go AI finds the work beneath the surface and turns it into safe, measurable AI-powered operations.</span><span>11 / 13</span></div>
   </section>
 
 
