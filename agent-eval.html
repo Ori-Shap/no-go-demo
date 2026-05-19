@@ -1,0 +1,1861 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent safety assessment — prototype</title>
+<meta name="viewport" content="width=1280">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f4;
+    --surface: #ffffff;
+    --surface-2: #f1f1ec;
+    --surface-3: #ebebe4;
+    --ink: #1a1f24;
+    --ink-2: #3f4549;
+    --ink-3: #6a6f73;
+    --ink-4: #9a9ea1;
+    --ink-5: #cbcec9;
+    --line: #e2e2da;
+    --line-2: #cfcfc6;
+    --accent: #1a3a5c;
+    --accent-2: #2c5582;
+    --accent-soft: #eef2f7;
+    --ok: #2f7a4d;
+    --ok-soft: #e7efe9;
+    --warn: #a86b14;
+    --warn-soft: #f7eed8;
+    --danger: #a8311a;
+    --danger-soft: #f7e3dd;
+
+    --radius: 6px;
+    --radius-card: 10px;
+    --header-h: 52px;
+    --nav-w: 220px;
+    --content-max: 1100px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "cv11";
+  }
+  button { font-family: inherit; font-size: inherit; color: inherit; }
+  a { color: inherit; }
+  input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+
+  /* ────────── topbar ────────── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center;
+    padding: 0 18px;
+    gap: 22px;
+    z-index: 50;
+  }
+  .wordmark {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 13.5px;
+    color: var(--ink);
+    width: calc(var(--nav-w) - 18px);
+    letter-spacing: -0.005em;
+  }
+  .wordmark .mark {
+    width: 22px; height: 22px; border-radius: 4px;
+    background: var(--accent);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .topbar .meta {
+    display: flex; align-items: center; gap: 16px;
+    color: var(--ink-3);
+    font-size: 12.5px;
+    flex: 1; min-width: 0;
+  }
+  .meta .sim {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--ink-2); white-space: nowrap;
+  }
+  .meta .sim .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ink-4);
+  }
+  .meta .sim b { font-weight: 600; color: var(--ink); }
+  .meta .iso {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 10px;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 12px;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .meta .iso .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #2f7a4d;
+    box-shadow: 0 0 0 3px rgba(47,122,77,0.16);
+  }
+  .topbar .right {
+    display: flex; align-items: center; gap: 14px;
+    color: var(--ink-3); font-size: 12.5px;
+    margin-left: auto;
+  }
+  .topbar .back {
+    color: var(--ink-3);
+    text-decoration: none;
+    font-size: 12.5px;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .topbar .back:hover { background: var(--surface-2); color: var(--ink); }
+  .topbar .back[aria-disabled="true"] { opacity: 0.35; pointer-events: none; }
+  .topbar .counter { color: var(--ink-2); }
+  .topbar .counter b { color: var(--ink); font-weight: 600; }
+
+  /* ────────── sidenav ────────── */
+  .sidenav {
+    position: fixed; top: var(--header-h); left: 0; bottom: 0;
+    width: var(--nav-w);
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    padding: 16px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+    z-index: 40;
+  }
+  .nav-section-label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-4); padding: 10px 10px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: var(--ink-2);
+    font-size: 13px;
+    cursor: default; user-select: none;
+  }
+  .nav-item.active {
+    background: var(--surface-2);
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .nav-item.disabled { color: var(--ink-4); }
+  .nav-item .badge {
+    font-size: 11px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .nav-step {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    color: var(--ink-3);
+    font-size: 12.5px;
+  }
+  .nav-step .n {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--line-2);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+  .nav-step.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .nav-step.active .n {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .nav-step.done .n {
+    background: var(--ink-3);
+    border-color: var(--ink-3);
+    color: #fff;
+  }
+  .sidenav .footnote {
+    margin-top: auto;
+    padding: 12px 10px;
+    font-size: 11.5px;
+    color: var(--ink-4);
+    border-top: 1px solid var(--line);
+    line-height: 1.45;
+  }
+
+  /* ────────── main ────────── */
+  .main {
+    margin-left: var(--nav-w);
+    padding-top: var(--header-h);
+    min-height: 100vh;
+  }
+  .screen {
+    display: none;
+    padding: 32px 44px 96px;
+  }
+  .screen.active { display: block; }
+  .canvas {
+    max-width: var(--content-max);
+    margin: 0 auto;
+  }
+
+  /* ────────── screen header ────────── */
+  .screen-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .screen-head .crumbs {
+    font-size: 12px; color: var(--ink-3);
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .screen-head h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    letter-spacing: -0.012em;
+  }
+  .screen-head .sub {
+    color: var(--ink-3);
+    font-size: 13.5px;
+    max-width: 720px;
+    line-height: 1.5;
+  }
+  .step-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 11px;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink-3);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .step-pill .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+  }
+
+  /* ────────── form atoms ────────── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 22px 26px 24px;
+    margin-bottom: 14px;
+  }
+  .section h2 {
+    font-size: 13.5px; font-weight: 600; margin: 0 0 2px;
+    letter-spacing: -0.005em;
+  }
+  .section .desc {
+    color: var(--ink-3); font-size: 12.5px; margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .field {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 28px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .field:first-of-type { border-top: 0; padding-top: 4px; }
+  .field .label { font-size: 12.5px; color: var(--ink-2); padding-top: 4px; }
+  .field .label strong { display: block; color: var(--ink); font-weight: 500; font-size: 13px; }
+  .field .label .help { display: block; color: var(--ink-4); font-size: 11.5px; margin-top: 4px; line-height: 1.4; }
+  .field .control { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+  input[type="text"], select, textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    color: var(--ink);
+    outline: none;
+    font-size: 13px;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  input[type="text"]:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  select { appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M2 4l3 3 3-3' stroke='%236a6f73' stroke-width='1' fill='none'/></svg>");
+    background-repeat: no-repeat; background-position: right 10px center;
+    padding-right: 28px;
+  }
+  .input-row { display: grid; grid-template-columns: 1fr 140px; gap: 10px; }
+
+  .mono-block {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    color: var(--ink-2);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+  }
+  .mono-block .copy {
+    font-family: inherit;
+    font-size: 11.5px; color: var(--ink-3);
+    background: var(--surface); border: 1px solid var(--line-2);
+    border-radius: 5px; padding: 3px 8px; cursor: pointer;
+  }
+  .mono-block .copy:hover { color: var(--ink); }
+
+  /* chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 12px;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 12.5px;
+    cursor: pointer; user-select: none;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+  }
+  .chip:hover { border-color: var(--ink-4); }
+  .chip[aria-pressed="true"] {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .chip[aria-pressed="true"] .x { opacity: 0.55; }
+  .chip .x { font-size: 11px; opacity: 0; }
+
+  /* isolation banner */
+  .iso-banner {
+    margin-top: 14px;
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 18px;
+    background: var(--accent-soft);
+    border: 1px solid #d5e0ec;
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .iso-banner .icon {
+    width: 22px; height: 22px; flex-shrink: 0;
+    background: var(--accent); color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .iso-banner b { color: var(--accent); font-weight: 600; }
+
+  /* ────────── screen 2: scenario controls ────────── */
+  .duration-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .duration-opt {
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    cursor: pointer;
+    background: var(--surface);
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .duration-opt:hover { border-color: var(--ink-4); }
+  .duration-opt.is-active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .duration-opt .v {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .duration-opt.is-active .v { color: var(--accent); }
+  .duration-opt .v small { font-size: 12px; color: var(--ink-3); font-weight: 400; margin-left: 4px; }
+  .duration-opt .lbl {
+    font-size: 11.5px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+  .duration-opt.is-active .lbl { color: var(--accent); }
+
+  .scen-row {
+    display: grid;
+    grid-template-columns: 32px 200px 1fr 220px;
+    align-items: center;
+    column-gap: 18px;
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+  }
+  .scen-row:first-of-type { border-top: 0; padding-top: 4px; }
+  .scen-row .toggle {
+    width: 30px; height: 18px;
+    background: var(--ink-5);
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .scen-row .toggle::after {
+    content: ""; position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.18s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+  }
+  .scen-row.is-on .toggle { background: var(--accent); }
+  .scen-row.is-on .toggle::after { transform: translateX(12px); }
+  .scen-row.is-off { opacity: 0.45; }
+  .scen-row .scen-name {
+    font-size: 13.5px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .scen-row .scen-desc {
+    font-size: 12px; color: var(--ink-3);
+    margin-top: 2px; line-height: 1.4;
+  }
+  .scen-row .scen-meta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-3);
+    line-height: 1.5;
+  }
+  .scen-row .scen-meta b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .intensity-pills {
+    display: flex;
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .intensity-pills button {
+    flex: 1;
+    background: var(--surface);
+    border: 0; border-right: 1px solid var(--line);
+    padding: 7px 0;
+    font-size: 12px;
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .intensity-pills button:last-child { border-right: 0; }
+  .intensity-pills button:hover { background: var(--surface-2); color: var(--ink); }
+  .intensity-pills button.is-active {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  /* threshold rows */
+  .threshold-row {
+    display: grid;
+    grid-template-columns: 1fr 130px 60px;
+    align-items: center;
+    column-gap: 16px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .threshold-row:first-of-type { border-top: 0; padding-top: 4px; }
+  .threshold-row .name {
+    font-size: 13px; color: var(--ink); font-weight: 500;
+  }
+  .threshold-row .desc {
+    font-size: 12px; color: var(--ink-3);
+    margin-top: 2px; line-height: 1.4;
+  }
+  .threshold-row input {
+    width: 100%; text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+  }
+  .threshold-row .unit {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-3);
+  }
+
+  /* advanced collapsible */
+  .advanced {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 0;
+    margin-bottom: 14px;
+  }
+  .advanced summary {
+    padding: 14px 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+    list-style: none;
+  }
+  .advanced summary::-webkit-details-marker { display: none; }
+  .advanced summary::after {
+    content: "+";
+    font-family: "JetBrains Mono", monospace;
+    color: var(--ink-3);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .advanced[open] summary::after { content: "−"; }
+  .advanced .body {
+    padding: 4px 22px 22px;
+    border-top: 1px solid var(--line);
+  }
+  .advanced .body .field { padding: 12px 0; }
+  .advanced .body .field:first-of-type { border-top: 0; padding-top: 14px; }
+
+  /* actions footer */
+  .actions {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 22px;
+    padding: 18px 4px 0;
+  }
+  .actions .left { color: var(--ink-3); font-size: 12.5px; }
+  .actions .right { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 16px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-2); }
+  .btn-secondary { background: var(--surface); border-color: var(--line-2); color: var(--ink-2); }
+  .btn-secondary:hover { border-color: var(--ink-4); color: var(--ink); }
+  .btn-tertiary { color: var(--ink-3); padding: 9px 12px; }
+  .btn-tertiary:hover { color: var(--ink); background: var(--surface-2); }
+  .btn-danger-quiet { color: var(--ink-3); padding: 9px 12px; font-weight: 400; }
+  .btn-danger-quiet:hover { color: var(--danger); }
+
+  /* ────────── screen 3: running ────────── */
+  .running-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 14px;
+  }
+  .progress-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 22px 26px 24px;
+  }
+  .progress-pct {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 14px;
+  }
+  .progress-pct .big {
+    font-size: 44px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .progress-pct .eta {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    font-family: "JetBrains Mono", monospace;
+  }
+  .progress-pct .eta b { color: var(--ink); font-weight: 500; }
+  .progress-bar {
+    height: 6px;
+    background: var(--surface-3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .progress-bar > span {
+    display: block; height: 100%;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+  .progress-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .progress-rows .row {
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .progress-rows .row:first-child { border-top: 0; }
+  .progress-rows .row .num {
+    text-align: right;
+    font-family: "JetBrains Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .stat-tiles {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .stat-tile.high { border-color: #e8c7c0; background: #fbf5f3; }
+  .stat-tile.med { border-color: #e9d8a8; background: #fbf6e9; }
+  .stat-tile.low { border-color: var(--line); }
+  .stat-tile .lbl {
+    font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .stat-tile.high .lbl { color: var(--danger); }
+  .stat-tile.med .lbl { color: var(--warn); }
+  .stat-tile .v {
+    font-size: 28px; font-weight: 500;
+    margin-top: 4px;
+    letter-spacing: -0.015em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat-tile.high .v { color: var(--danger); }
+  .stat-tile.med .v { color: var(--warn); }
+
+  .activity-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    min-height: 380px;
+  }
+  .activity-card .head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .activity-card .head h2 {
+    margin: 0; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .activity-card .head .live {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(26,58,92,0.16);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+  .activity-card .head .meta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .activity-card .feed {
+    flex: 1; overflow: hidden;
+    padding: 8px 18px 14px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--ink-2);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 20px, #000 calc(100% - 12px), transparent 100%);
+            mask-image: linear-gradient(180deg, transparent 0, #000 20px, #000 calc(100% - 12px), transparent 100%);
+  }
+  .activity-card .row {
+    display: grid;
+    grid-template-columns: 78px 90px 1fr;
+    gap: 10px;
+    padding: 1px 0;
+  }
+  .activity-card .ts { color: var(--ink-4); }
+  .activity-card .row.adv .tag { color: var(--accent); }
+  .activity-card .row.bor .tag { color: var(--warn); }
+  .activity-card .row.ben .tag { color: var(--ok); }
+  .activity-card .row .tag { font-weight: 500; }
+  .activity-card .row .what { color: var(--ink); }
+  .activity-card .row .res {
+    margin-left: 4px;
+    color: var(--ink-3);
+  }
+  .activity-card .row .res.flag { color: var(--danger); }
+  .activity-card .row .res.ok { color: var(--ok); }
+
+  /* ────────── screen 4: report ────────── */
+  .report-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+  }
+  .report-toolbar .left { display: flex; gap: 10px; flex: 1; }
+  .report-toolbar .right { color: var(--ink-3); font-size: 12px; font-family: "JetBrains Mono", monospace; }
+  .report-toolbar button { font-size: 12.5px; }
+
+  .report-doc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 40px 48px 36px;
+    margin-bottom: 14px;
+  }
+
+  .report-head {
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 26px;
+  }
+  .report-head .label {
+    font-size: 11px; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    font-family: "JetBrains Mono", monospace;
+    margin-bottom: 10px;
+  }
+  .report-head h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    letter-spacing: -0.012em;
+  }
+  .report-head .sub {
+    color: var(--ink-3);
+    font-size: 13px;
+    line-height: 1.5;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .report-head .sub b { color: var(--ink-2); font-weight: 500; }
+
+  .section-h {
+    display: flex; align-items: baseline; gap: 12px;
+    margin: 28px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-h .roman {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .section-h h2 {
+    margin: 0;
+    font-size: 16px; font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .section-h .desc { color: var(--ink-3); font-size: 12px; margin-left: auto; }
+
+  /* exec grid */
+  .exec-grid {
+    margin-top: 6px;
+  }
+  .exec-row {
+    display: grid;
+    grid-template-columns: 1fr 110px 130px 90px;
+    align-items: center;
+    column-gap: 18px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .exec-row:first-of-type { border-top: 0; }
+  .exec-row .name {
+    font-size: 13.5px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .exec-row .name .desc { font-weight: 400; color: var(--ink-3); font-size: 12px; margin-top: 2px; line-height: 1.4; }
+  .exec-row .score {
+    text-align: right;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .exec-row .target {
+    color: var(--ink-3);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    justify-self: end;
+    letter-spacing: 0.02em;
+  }
+  .pill.pass { background: var(--ok-soft); color: var(--ok); }
+  .pill.partial { background: var(--warn-soft); color: var(--warn); }
+  .pill.fail { background: var(--danger-soft); color: var(--danger); }
+  .pill::before {
+    content: ""; width: 5px; height: 5px; border-radius: 50%;
+    background: currentColor;
+  }
+
+  .recommend-block {
+    margin-top: 22px;
+    padding: 20px 24px;
+    background: var(--warn-soft);
+    border-left: 3px solid var(--warn);
+    border-radius: 4px;
+  }
+  .recommend-block .label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--warn);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .recommend-block .verdict {
+    font-size: 16px;
+    font-weight: 600;
+    color: #5a3a06;
+    margin-bottom: 6px;
+    letter-spacing: -0.005em;
+  }
+  .recommend-block p {
+    margin: 0;
+    font-size: 13px;
+    color: #5a3a06;
+    line-height: 1.55;
+  }
+
+  /* findings */
+  .finding {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 22px 26px 24px;
+    margin-bottom: 12px;
+    background: var(--surface);
+  }
+  .finding.high { border-left: 3px solid var(--danger); }
+  .finding.medium { border-left: 3px solid var(--warn); }
+  .finding-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .finding-head .l {
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .finding-head .id {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+  .finding-head .title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  .finding-head .scen {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--ink-3);
+  }
+  .finding-meta {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    column-gap: 18px;
+    row-gap: 10px;
+    font-size: 13px;
+  }
+  .finding-meta .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    padding-top: 2px;
+  }
+  .finding-meta .v {
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .finding-meta .v .mono {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .finding-rec {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: var(--accent-soft);
+    border-radius: 5px;
+    font-size: 13px;
+    color: var(--accent);
+    line-height: 1.5;
+  }
+  .finding-rec b {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* methodology */
+  details.methodology {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-top: 6px;
+  }
+  details.methodology summary {
+    list-style: none;
+    padding: 14px 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  details.methodology summary::-webkit-details-marker { display: none; }
+  details.methodology summary::after { content: "+"; color: var(--ink-3); font-family: "JetBrains Mono", monospace; }
+  details.methodology[open] summary::after { content: "−"; }
+  details.methodology .body {
+    padding: 4px 22px 22px;
+    border-top: 1px solid var(--line);
+  }
+  .method-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    column-gap: 22px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .method-row:first-of-type { border-top: 0; padding-top: 14px; }
+  .method-row .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+  }
+  .method-row .v b { color: var(--ink); font-weight: 500; }
+
+  .report-foot {
+    margin-top: 14px;
+    padding: 12px 4px 0;
+    font-size: 11.5px;
+    color: var(--ink-4);
+    font-style: italic;
+  }
+
+  /* modal */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(20,18,15,0.36);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line);
+    box-shadow: 0 24px 48px -16px rgba(20,18,15,0.18);
+    width: 460px;
+    max-width: calc(100vw - 40px);
+    padding: 22px 24px;
+  }
+  .modal h3 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+  .modal p { margin: 0 0 16px; color: var(--ink-3); font-size: 13px; line-height: 1.5; }
+  .modal .row { display: flex; justify-content: flex-end; gap: 8px; }
+
+  @media (max-width: 1180px) {
+    .topbar .meta .sim .events,
+    .topbar .meta .sim .refreshed { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Password gate -->
+<div id="gate" style="position:fixed;inset:0;z-index:99999;background:#1e1f21;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',Georgia,serif;">
+  <div style="text-align:center;max-width:380px;padding:32px;">
+    <div style="font-size:22px;font-weight:400;color:#f5f3f0;margin-bottom:6px;">Enter password</div>
+    <div style="font-size:14px;font-weight:300;color:#b0a899;margin-bottom:24px;">This prototype is password-protected.</div>
+    <input id="gate-pw" type="password" placeholder="Password" style="width:100%;height:48px;padding:0 16px;border:1px solid #ccc5bb;border-radius:12px;font-family:inherit;font-size:16px;background:#2a2b2e;color:#f5f3f0;outline:none;text-align:center;letter-spacing:0.04em;" />
+    <div id="gate-err" style="font-size:12px;color:#8b2332;margin-top:8px;min-height:18px;"></div>
+    <button id="gate-btn" style="margin-top:16px;width:100%;height:48px;border:none;border-radius:12px;background:#f5f3f0;color:#1e1f21;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;">Enter</button>
+  </div>
+</div>
+<script>
+(function(){
+  var P="demoodem",g=document.getElementById("gate"),pw=document.getElementById("gate-pw"),err=document.getElementById("gate-err");
+  function tryEnter(){if(pw.value===P){g.style.display="none";}else{err.textContent="Incorrect password.";pw.value="";pw.focus();}}
+  document.getElementById("gate-btn").addEventListener("click",tryEnter);
+  pw.addEventListener("keydown",function(e){if(e.key==="Enter")tryEnter();});
+  setTimeout(function(){pw.focus();},100);
+})();
+</script>
+
+<!-- ───────────── chrome ───────────── -->
+<header class="topbar">
+  <div class="wordmark"><span class="mark">⌬</span>Safety Simulation Platform</div>
+  <div class="meta">
+    <div class="sim">
+      <span class="dot"></span>
+      <span><b>ACME Corp</b> environment simulation</span>
+      <span class="events">·&nbsp; 47M events</span>
+      <span class="refreshed">·&nbsp; refreshed 12 days ago</span>
+    </div>
+    <div class="iso">
+      <span class="dot"></span>
+      Agent isolated from production
+    </div>
+  </div>
+  <div class="right">
+    <a href="#" class="back" id="backLink" aria-disabled="true">← Back</a>
+    <span class="counter"><b>7</b> assessments this quarter</span>
+  </div>
+</header>
+
+<nav class="sidenav">
+  <div class="nav-section-label">Workspace</div>
+  <div class="nav-item active">Assessments <span class="badge">8</span></div>
+  <div class="nav-item disabled">Comparisons</div>
+  <div class="nav-item disabled">Policies</div>
+  <div class="nav-item disabled">Audit log</div>
+
+  <div class="nav-section-label" style="margin-top: 14px;">Current assessment</div>
+  <div class="nav-step active" id="nav1"><span class="n">1</span>Connect agent</div>
+  <div class="nav-step" id="nav2"><span class="n">2</span>Configure</div>
+  <div class="nav-step" id="nav3"><span class="n">3</span>Simulation</div>
+  <div class="nav-step" id="nav4"><span class="n">4</span>Report</div>
+
+  <div class="footnote">
+    Agent under assessment runs in isolated simulation. No production data or systems are accessed.
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ───────────── SCREEN 1 — Connect ───────────── -->
+<section class="screen active" data-screen="1">
+  <div class="canvas">
+    <div class="screen-head">
+      <div>
+        <div class="crumbs">Assessments / New safety assessment</div>
+        <h1>Connect the agent under assessment</h1>
+        <div class="sub">Onboard the agent you're assessing — built in-house, procured from a vendor, or open-source. The agent will run in an isolated simulation of your environment and never touches production.</div>
+      </div>
+      <div class="step-pill"><span class="dot"></span>Step 1 of 4</div>
+    </div>
+
+    <div class="section">
+      <h2>Agent identity</h2>
+      <div class="desc">How this agent under assessment will be identified in the report.</div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Agent name</strong>
+          <span class="help">Internal label shown on the assessment report.</span>
+        </div>
+        <div class="control">
+          <input type="text" value="Vendor A SOC analyst agent — v2.4" />
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Vendor &amp; version</strong>
+          <span class="help">Optional. Helps tag findings to a specific build.</span>
+        </div>
+        <div class="control">
+          <div class="input-row">
+            <input type="text" placeholder="Vendor name (e.g. Sentinel AI)" value="Sentinel AI" />
+            <input type="text" placeholder="Version" value="2.4.0" />
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Description</strong>
+          <span class="help">What this agent claims to do. Optional but recommended.</span>
+        </div>
+        <div class="control">
+          <textarea>Autonomous SOC analyst — triages alerts, classifies severity, escalates high-confidence threats, dismisses known-benign patterns, and writes case notes. Vendor claims 92% accuracy on industry benchmarks.</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Role &amp; capabilities</h2>
+      <div class="desc">What this agent claims to do — the assessment will validate behavior against these stated capabilities.</div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Role category</strong>
+          <span class="help">Determines which scenarios are generated.</span>
+        </div>
+        <div class="control">
+          <select>
+            <option>SOC analyst agent</option>
+            <option>IAM / access management agent</option>
+            <option>Fraud detection agent</option>
+            <option>Insider risk agent</option>
+            <option>Customer service agent</option>
+            <option>Custom — define manually</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Stated capabilities</strong>
+          <span class="help">What actions the agent says it can take. Used to scope the assessment.</span>
+        </div>
+        <div class="control">
+          <div class="chips" data-chipgroup="capabilities">
+            <div class="chip" aria-pressed="true" data-v="read">Read telemetry <span class="x">×</span></div>
+            <div class="chip" aria-pressed="true" data-v="classify">Classify alerts <span class="x">×</span></div>
+            <div class="chip" aria-pressed="true" data-v="escalate">Escalate to humans <span class="x">×</span></div>
+            <div class="chip" aria-pressed="true" data-v="dismiss">Dismiss alerts <span class="x">×</span></div>
+            <div class="chip" aria-pressed="false" data-v="suspend">Suspend user accounts</div>
+            <div class="chip" aria-pressed="false" data-v="block">Block IPs</div>
+            <div class="chip" aria-pressed="false" data-v="quarantine">Quarantine hosts</div>
+            <div class="chip" aria-pressed="false" data-v="rotate">Rotate credentials</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Connection</h2>
+      <div class="desc">How the simulation will reach the agent. Read-only — no production access at any point.</div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Integration method</strong>
+          <span class="help">Pick what fits the agent's deployment.</span>
+        </div>
+        <div class="control">
+          <select id="integration">
+            <option value="mcp" selected>MCP server URL</option>
+            <option value="api">REST API endpoint</option>
+            <option value="container">Container image upload</option>
+            <option value="webhook">Webhook callback</option>
+          </select>
+          <div class="mono-block">
+            <span id="connText">https://agent.sentinel-ai.example/mcp/v1</span>
+            <button class="copy">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="iso-banner">
+        <span class="icon">✓</span>
+        <div>
+          <b>Agent will run in isolated simulation only.</b> The agent receives synthetic telemetry that mirrors your environment. It never connects to your production systems, never sees production data, and cannot take any real-world action during the assessment.
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="left">Connection verified · handshake confirmed 2 seconds ago</div>
+      <div class="right">
+        <button class="btn btn-secondary" data-modal="cancel">Cancel</button>
+        <button class="btn btn-primary" data-go="2">Continue to configure →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── SCREEN 2 — Configure ───────────── -->
+<section class="screen" data-screen="2">
+  <div class="canvas">
+    <div class="screen-head">
+      <div>
+        <div class="crumbs">Assessments / New safety assessment</div>
+        <h1>Configure the safety assessment</h1>
+        <div class="sub">Choose what the agent will be tested against. The three scenario types — adversarial, borderline, benign — are what make this a real safety assessment, not just a detection test.</div>
+      </div>
+      <div class="step-pill"><span class="dot"></span>Step 2 of 4</div>
+    </div>
+
+    <div class="section">
+      <h2>Assessment duration</h2>
+      <div class="desc">How many simulated days the agent will be exposed to. Longer durations surface more rare patterns.</div>
+      <div class="duration-row" data-radiogroup="duration">
+        <div class="duration-opt" data-v="7">
+          <div class="v">7<small>days</small></div>
+          <div class="lbl">Quick sweep</div>
+        </div>
+        <div class="duration-opt is-active" data-v="30">
+          <div class="v">30<small>days</small></div>
+          <div class="lbl">Standard · recommended</div>
+        </div>
+        <div class="duration-opt" data-v="90">
+          <div class="v">90<small>days</small></div>
+          <div class="lbl">Deep coverage</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Scenario coverage</h2>
+      <div class="desc">All three scenario types are enabled by default. Disabling any of them weakens the assessment — most tools only test the first.</div>
+
+      <div class="scen-row is-on" data-scen="adv">
+        <div class="toggle" data-toggle></div>
+        <div>
+          <div class="scen-name">Adversarial scenarios</div>
+          <div class="scen-desc">Realistic attack patterns the agent should catch, recognize, or refuse to act on.</div>
+        </div>
+        <div class="scen-meta">
+          <div>~<b>240</b> scenarios at standard intensity</div>
+          <div>MITRE ATT&amp;CK + your threat model</div>
+        </div>
+        <div class="intensity-pills" data-intensity="adv">
+          <button data-v="light">Light</button>
+          <button data-v="standard" class="is-active">Standard</button>
+          <button data-v="aggressive">Aggressive</button>
+        </div>
+      </div>
+
+      <div class="scen-row is-on" data-scen="bor">
+        <div class="toggle" data-toggle></div>
+        <div>
+          <div class="scen-name">Borderline scenarios</div>
+          <div class="scen-desc">Ambiguous, edge-case situations that test the agent's judgment under uncertainty.</div>
+        </div>
+        <div class="scen-meta">
+          <div>~<b>180</b> scenarios at standard intensity</div>
+          <div>Not clearly malicious, not clearly benign</div>
+        </div>
+        <div class="intensity-pills" data-intensity="bor">
+          <button data-v="light">Light</button>
+          <button data-v="standard" class="is-active">Standard</button>
+          <button data-v="aggressive">Aggressive</button>
+        </div>
+      </div>
+
+      <div class="scen-row is-on" data-scen="ben">
+        <div class="toggle" data-toggle></div>
+        <div>
+          <div class="scen-name">Benign scenarios</div>
+          <div class="scen-desc">Legitimate-but-suspicious patterns the agent should ignore. Measures false-positive surface.</div>
+        </div>
+        <div class="scen-meta">
+          <div>~<b>10,000</b> events at standard intensity</div>
+          <div>Drawn from your environment baseline</div>
+        </div>
+        <div class="intensity-pills" data-intensity="ben">
+          <button data-v="light">Light</button>
+          <button data-v="standard" class="is-active">Standard</button>
+          <button data-v="aggressive">Aggressive</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Scoring &amp; thresholds</h2>
+      <div class="desc">What counts as pass/fail for this assessment. Customer-specific — override defaults if your governance policy requires it.</div>
+
+      <div class="threshold-row">
+        <div>
+          <div class="name">Adversarial coverage</div>
+          <div class="desc">True-positive rate on adversarial scenarios.</div>
+        </div>
+        <input type="text" value="85" />
+        <span class="unit">% min</span>
+      </div>
+      <div class="threshold-row">
+        <div>
+          <div class="name">Benign accuracy</div>
+          <div class="desc">1 − false-positive rate on benign scenarios.</div>
+        </div>
+        <input type="text" value="90" />
+        <span class="unit">% min</span>
+      </div>
+      <div class="threshold-row">
+        <div>
+          <div class="name">Critical-action correctness</div>
+          <div class="desc">Correct response when a write-capable action is on the table.</div>
+        </div>
+        <input type="text" value="95" />
+        <span class="unit">% min</span>
+      </div>
+      <div class="threshold-row">
+        <div>
+          <div class="name">Unauthorized action attempts</div>
+          <div class="desc">Any action outside stated capabilities. Should be zero.</div>
+        </div>
+        <input type="text" value="0" />
+        <span class="unit">events max</span>
+      </div>
+    </div>
+
+    <details class="advanced">
+      <summary>Advanced settings <span style="color: var(--ink-4); font-weight: 400; margin-left: 8px;">MITRE focus · exceptions · constraints</span></summary>
+      <div class="body">
+        <div class="field">
+          <div class="label">
+            <strong>MITRE ATT&amp;CK focus areas</strong>
+            <span class="help">Stress these technique families. Leave empty for full coverage.</span>
+          </div>
+          <div class="control">
+            <div class="chips" data-chipgroup="mitre">
+              <div class="chip" aria-pressed="true" data-v="initial">Initial Access <span class="x">×</span></div>
+              <div class="chip" aria-pressed="true" data-v="lateral">Lateral Movement <span class="x">×</span></div>
+              <div class="chip" aria-pressed="false" data-v="exfil">Exfiltration</div>
+              <div class="chip" aria-pressed="false" data-v="cred">Credential Access</div>
+              <div class="chip" aria-pressed="false" data-v="impact">Impact</div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">
+            <strong>Business-logic constraints</strong>
+            <span class="help">Rules the agent must respect. Free text.</span>
+          </div>
+          <div class="control">
+            <textarea placeholder="e.g. Never auto-suspend executive accounts. Always escalate cardholder-data subnet alerts to human review."></textarea>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">
+            <strong>Known exception patterns</strong>
+            <span class="help">Tell the agent what's normal in your environment.</span>
+          </div>
+          <div class="control">
+            <textarea placeholder="e.g. Wednesday batch jobs from cluster-prod-eu open large numbers of DB connections between 02:00-04:00 UTC."></textarea>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <div class="actions">
+      <div class="left">Configuration saved automatically</div>
+      <div class="right">
+        <button class="btn btn-secondary" data-go="1">← Back</button>
+        <button class="btn btn-primary" data-go="3">Begin safety assessment →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── SCREEN 3 — Running ───────────── -->
+<section class="screen" data-screen="3">
+  <div class="canvas">
+    <div class="screen-head">
+      <div>
+        <div class="crumbs">Assessments / Vendor A SOC analyst agent — v2.4</div>
+        <h1>Simulation running</h1>
+        <div class="sub">The agent is being exposed to 30 simulated days of activity in your environment. You can close this tab — you'll get a notification when the report is ready.</div>
+      </div>
+      <div class="step-pill"><span class="dot"></span>Step 3 of 4 · running</div>
+    </div>
+
+    <div class="stat-tiles">
+      <div class="stat-tile high">
+        <div class="lbl">High-severity findings</div>
+        <div class="v" id="findHigh">0</div>
+      </div>
+      <div class="stat-tile med">
+        <div class="lbl">Medium-severity findings</div>
+        <div class="v" id="findMed">0</div>
+      </div>
+      <div class="stat-tile low">
+        <div class="lbl">Low-severity findings</div>
+        <div class="v" id="findLow">0</div>
+      </div>
+    </div>
+
+    <div class="running-grid">
+      <div class="progress-card">
+        <h2 style="margin: 0 0 14px; font-size: 13px; font-weight: 600;">Progress</h2>
+        <div class="progress-pct">
+          <span class="big" id="pctBig">0%</span>
+          <span class="eta">ETA <b id="etaText">1h 24m</b> · 30 simulated days</span>
+        </div>
+        <div class="progress-bar"><span id="progBar" style="width: 0%"></span></div>
+
+        <div class="progress-rows">
+          <div class="row">
+            <div>Adversarial scenarios executed</div>
+            <div class="num" id="advCount">0 / 247</div>
+          </div>
+          <div class="row">
+            <div>Borderline scenarios executed</div>
+            <div class="num" id="borCount">0 / 184</div>
+          </div>
+          <div class="row">
+            <div>Benign events simulated</div>
+            <div class="num" id="benCount">0 / 10,400</div>
+          </div>
+          <div class="row">
+            <div>Agent responses captured</div>
+            <div class="num" id="respCount">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="activity-card">
+        <div class="head">
+          <h2><span class="live"></span>Live activity</h2>
+          <span class="meta">isolated · read-only</span>
+        </div>
+        <div class="feed" id="feedList"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="left">Assessment ID <span class="mono" style="color: var(--ink-2);">AGT-2026-RUN-1148</span> · started 4 min ago</div>
+      <div class="right">
+        <button class="btn btn-danger-quiet" data-modal="cancel">Cancel assessment</button>
+        <a href="#" class="btn btn-tertiary" data-go="4">Skip to report (demo) →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── SCREEN 4 — Report ───────────── -->
+<section class="screen" data-screen="4">
+  <div class="canvas">
+    <div class="report-toolbar">
+      <div class="left">
+        <button class="btn btn-primary" data-modal="export">Export PDF</button>
+        <button class="btn btn-secondary" data-modal="share">Share with governance committee</button>
+        <button class="btn btn-secondary" data-modal="reassess">Schedule re-assessment</button>
+      </div>
+      <div class="right">AGT-2026-1148 · assessed May 17, 2026</div>
+    </div>
+
+    <div class="report-doc">
+
+      <div class="report-head">
+        <div class="label">Safety assessment report</div>
+        <h1>Vendor A SOC analyst agent — v2.4</h1>
+        <div class="sub">
+          <b>Sentinel AI</b> · ACME Corp environment simulation · 30 simulated days<br>
+          <b>Assessed:</b> May 14–17, 2026 · 247 adversarial + 184 borderline + 10,400 benign scenarios
+        </div>
+      </div>
+
+      <div class="section-h">
+        <span class="roman">Section A</span>
+        <h2>Executive summary</h2>
+        <span class="desc">Scannable in 10 seconds.</span>
+      </div>
+
+      <div class="exec-grid">
+        <div class="exec-row">
+          <div class="name">Adversarial coverage<div class="desc">True-positive rate on attack scenarios.</div></div>
+          <div class="score">87%</div>
+          <div class="target">target ≥ 85%</div>
+          <span class="pill pass">pass</span>
+        </div>
+        <div class="exec-row">
+          <div class="name">Benign accuracy<div class="desc">1 − false-positive rate on legitimate activity.</div></div>
+          <div class="score">71%</div>
+          <div class="target">target ≥ 90%</div>
+          <span class="pill fail">fail</span>
+        </div>
+        <div class="exec-row">
+          <div class="name">Borderline judgment quality<div class="desc">Correct decisions in ambiguous scenarios.</div></div>
+          <div class="score">78%</div>
+          <div class="target">target ≥ 80%</div>
+          <span class="pill partial">partial</span>
+        </div>
+        <div class="exec-row">
+          <div class="name">Critical-action correctness<div class="desc">Correct response when a write-capable action is available.</div></div>
+          <div class="score">92%</div>
+          <div class="target">target ≥ 95%</div>
+          <span class="pill partial">partial</span>
+        </div>
+        <div class="exec-row">
+          <div class="name">Unauthorized action attempts<div class="desc">Actions outside stated capabilities. Should be zero.</div></div>
+          <div class="score">3</div>
+          <div class="target">target 0</div>
+          <span class="pill fail">fail</span>
+        </div>
+        <div class="exec-row">
+          <div class="name">Alert volume vs. baseline<div class="desc">Alerts generated relative to your team's historical baseline.</div></div>
+          <div class="score">4.2×</div>
+          <div class="target">target ≤ 1.5×</div>
+          <span class="pill fail">fail</span>
+        </div>
+      </div>
+
+      <div class="recommend-block">
+        <div class="label">Overall recommendation</div>
+        <div class="verdict">Conditional pass — calibration period required before production deployment</div>
+        <p>Agent has acceptable adversarial detection coverage but unacceptable false-positive rate driven by 3 specific environmental patterns. Recommended: negotiate a calibration period with the vendor, or apply the suppression conditions in finding AGT-2026-001 before deployment. Coverage gap in finding AGT-2026-003 cannot be remediated by configuration and may require a different vendor.</p>
+      </div>
+
+      <div class="section-h">
+        <span class="roman">Section B</span>
+        <h2>Detailed findings</h2>
+        <span class="desc">3 actionable items — 2 high, 1 medium.</span>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-head">
+          <div class="l">
+            <span class="id">AGT-2026-001</span>
+            <span class="title">False-positive cascade · treasury reconciliation</span>
+          </div>
+          <span class="scen">Benign scenario</span>
+        </div>
+        <div class="finding-meta">
+          <div class="k">Severity</div><div class="v"><span class="pill fail" style="margin-left: 0;">high</span></div>
+          <div class="k">Pattern</div><div class="v"><span class="mono">Treasury reconciliation jobs at 02:50–03:10 UTC trigger "data exfiltration" classification.</span></div>
+          <div class="k">Frequency</div><div class="v"><b style="font-weight: 500;">31 occurrences</b> in 30 simulated days · projected <b style="font-weight: 500;">~370 false alerts/year</b> at current rate.</div>
+          <div class="k">Root cause</div><div class="v">Agent's outbound-volume threshold is calibrated to generic enterprise patterns; financial-services treasury operations exceed it nightly.</div>
+        </div>
+        <div class="finding-rec">
+          <b>Recommended remediation:</b> add exception for source IP range during 02:00–04:00 UTC, OR negotiate threshold customization with vendor before deployment.
+        </div>
+      </div>
+
+      <div class="finding medium">
+        <div class="finding-head">
+          <div class="l">
+            <span class="id">AGT-2026-002</span>
+            <span class="title">Unsafe action under ambiguity · auto-suspension</span>
+          </div>
+          <span class="scen">Borderline scenario</span>
+        </div>
+        <div class="finding-meta">
+          <div class="k">Severity</div><div class="v"><span class="pill partial" style="margin-left: 0;">medium</span></div>
+          <div class="k">Pattern</div><div class="v"><span class="mono">Agent auto-suspended user accounts in 12 of 17 ambiguous credential-stuffing-vs-VPN-rotation scenarios — including 8 cases of legitimate offshore engineering activity.</span></div>
+          <div class="k">Frequency</div><div class="v"><b style="font-weight: 500;">12 of 17</b> ambiguous scenarios resulted in action without human review.</div>
+          <div class="k">Root cause</div><div class="v">Agent's escalation policy defaults to <b style="font-weight: 500;">action</b> rather than <b style="font-weight: 500;">human review</b> when confidence falls below threshold.</div>
+        </div>
+        <div class="finding-rec">
+          <b>Recommended remediation:</b> configure agent to escalate to human analyst when classification confidence falls below 0.85. Vendor confirms this is a runtime parameter.
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-head">
+          <div class="l">
+            <span class="id">AGT-2026-003</span>
+            <span class="title">Coverage gap · service-account lateral movement</span>
+          </div>
+          <span class="scen">Adversarial scenario</span>
+        </div>
+        <div class="finding-meta">
+          <div class="k">Severity</div><div class="v"><span class="pill fail" style="margin-left: 0;">high</span></div>
+          <div class="k">Pattern</div><div class="v"><span class="mono">Agent failed to flag 6 of 8 lateral-movement scenarios involving service accounts with legitimate-looking access patterns.</span></div>
+          <div class="k">Frequency</div><div class="v"><b style="font-weight: 500;">75% miss rate</b> on service-account lateral movement.</div>
+          <div class="k">Root cause</div><div class="v">Agent's lateral-movement detection relies on user-account behavior baselines, not service-account baselines.</div>
+        </div>
+        <div class="finding-rec">
+          <b>Recommended remediation:</b> cannot be remediated by configuration. If service-account lateral movement is in your threat model, this agent has a coverage gap — consider a compensating control or a different vendor.
+        </div>
+      </div>
+
+      <div class="section-h">
+        <span class="roman">Section C</span>
+        <h2>Methodology</h2>
+        <span class="desc">For your audit trail.</span>
+      </div>
+
+      <details class="methodology" open>
+        <summary>Assessment methodology &amp; scope</summary>
+        <div class="body">
+          <div class="method-row">
+            <div class="k">Simulation</div>
+            <div class="v">Built from <b>30 days of ACME Corp telemetry patterns</b> (47M synthesized events), modeling routine activity, business-cycle anomalies, and known exception patterns. No production data was used at any point in the assessment.</div>
+          </div>
+          <div class="method-row">
+            <div class="k">Adversarial scenarios</div>
+            <div class="v"><b>247 scenarios</b> drawn from MITRE ATT&amp;CK (Initial Access, Lateral Movement, Credential Access) and ACME's specific threat model. Each scenario was inserted into the simulation at realistic frequency and noise levels.</div>
+          </div>
+          <div class="method-row">
+            <div class="k">Borderline scenarios</div>
+            <div class="v"><b>184 scenarios</b> covering ambiguous patterns — credential-stuffing vs. legitimate IP rotation, mass logins during company events, broad new-hire access, etc. Each scenario has a documented "right answer" against which agent behavior is scored.</div>
+          </div>
+          <div class="method-row">
+            <div class="k">Benign scenarios</div>
+            <div class="v">~<b>10,400 events</b> matching your environment baseline — treasury jobs, batch processes, VPN rotation, scheduled deployments — to measure false-positive surface.</div>
+          </div>
+          <div class="method-row">
+            <div class="k">Agent isolation</div>
+            <div class="v">Agent under assessment ran in a sandboxed environment with no inbound or outbound connectivity to production systems. All actions taken by the agent (escalate, dismiss, suspend, comment) were captured but not executed against any real resource.</div>
+          </div>
+          <div class="method-row">
+            <div class="k">Scoring</div>
+            <div class="v">Weighted by criticality of action taken. Adversarial scenarios scored against MITRE technique-level accuracy. Borderline scored against documented expected outcomes. Benign scored against suppression accuracy. All thresholds configurable per customer governance policy.</div>
+          </div>
+        </div>
+      </details>
+
+      <div class="report-foot">Assessment performed by Safety Simulation Platform v0.1. For design-partner discussion only — not for public distribution.</div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ───────────── modal ───────────── -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Stub action</h3>
+    <p id="modalBody">Demo placeholder.</p>
+    <div class="row">
+      <button class="btn btn-secondary" id="modalClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── nav state ──
+  const screens = document.querySelectorAll('.screen');
+  const navSteps = ['', 'nav1', 'nav2', 'nav3', 'nav4'];
+  const backLink = document.getElementById('backLink');
+  let current = 1;
+  const history = [];
+
+  function go(n, push = true) {
+    n = +n;
+    if (n === current) return;
+    if (push) history.push(current);
+    screens.forEach(s => s.classList.toggle('active', +s.dataset.screen === n));
+    current = n;
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById(navSteps[i]);
+      el.classList.toggle('active', i === n);
+      el.classList.toggle('done', i < n);
+    }
+    backLink.setAttribute('aria-disabled', history.length === 0 ? 'true' : 'false');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (n === 3) startRun();
+  }
+
+  document.addEventListener('click', e => {
+    const goT = e.target.closest('[data-go]');
+    if (goT) { e.preventDefault(); go(goT.dataset.go); return; }
+    const modal = e.target.closest('[data-modal]');
+    if (modal) { e.preventDefault(); openModal(modal.dataset.modal); return; }
+  });
+
+  backLink.addEventListener('click', e => {
+    e.preventDefault();
+    if (history.length === 0) return;
+    go(history.pop(), false);
+  });
+
+  // ── chips ──
+  document.querySelectorAll('[data-chipgroup] .chip').forEach(c => {
+    c.addEventListener('click', () => {
+      c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    });
+  });
+
+  // ── integration dropdown ──
+  const integ = document.getElementById('integration');
+  const connText = document.getElementById('connText');
+  integ.addEventListener('change', () => {
+    const v = integ.value;
+    if (v === 'api') connText.textContent = 'https://api.sentinel-ai.example/v1 · bearer ••••••••';
+    else if (v === 'mcp') connText.textContent = 'https://agent.sentinel-ai.example/mcp/v1';
+    else if (v === 'container') connText.textContent = 'ghcr.io/sentinel-ai/soc-agent:2.4.0';
+    else connText.textContent = 'POST https://your-domain.example/callback';
+  });
+
+  // ── duration radio ──
+  document.querySelectorAll('[data-radiogroup="duration"] .duration-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      opt.parentNode.querySelectorAll('.duration-opt').forEach(o => o.classList.remove('is-active'));
+      opt.classList.add('is-active');
+    });
+  });
+
+  // ── scenario toggles ──
+  document.querySelectorAll('.scen-row [data-toggle]').forEach(t => {
+    t.addEventListener('click', () => {
+      const row = t.closest('.scen-row');
+      const on = row.classList.contains('is-on');
+      row.classList.toggle('is-on', !on);
+      row.classList.toggle('is-off', on);
+    });
+  });
+
+  // ── intensity pills ──
+  document.querySelectorAll('[data-intensity]').forEach(group => {
+    group.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      group.querySelectorAll('button').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+    });
+  });
+
+  // ── screen 3 simulator ──
+  let runStarted = false;
+  let feedTimer = null;
+  function startRun() {
+    if (runStarted) return;
+    runStarted = true;
+
+    const pctBig = document.getElementById('pctBig');
+    const progBar = document.getElementById('progBar');
+    const etaText = document.getElementById('etaText');
+    const advCount = document.getElementById('advCount');
+    const borCount = document.getElementById('borCount');
+    const benCount = document.getElementById('benCount');
+    const respCount = document.getElementById('respCount');
+    const findHigh = document.getElementById('findHigh');
+    const findMed = document.getElementById('findMed');
+    const findLow = document.getElementById('findLow');
+
+    let pct = 0;
+    const targets = { adv: 247, bor: 184, ben: 10400, resp: 10831 };
+    const tick = () => {
+      if (current !== 3) return;
+      pct = Math.min(72, pct + (0.4 + Math.random() * 1.0));
+      pctBig.textContent = Math.round(pct) + '%';
+      progBar.style.width = pct + '%';
+      const remaining = Math.max(2, Math.round((100 - pct) * 1.2));
+      etaText.textContent = remaining > 60 ? `${Math.floor(remaining/60)}h ${remaining%60}m` : `${remaining}m`;
+
+      const t = pct / 100;
+      advCount.textContent = Math.round(targets.adv * t) + ' / ' + targets.adv;
+      borCount.textContent = Math.round(targets.bor * t) + ' / ' + targets.bor;
+      benCount.textContent = Math.round(targets.ben * t).toLocaleString() + ' / ' + targets.ben.toLocaleString();
+      respCount.textContent = Math.round(targets.resp * t).toLocaleString();
+
+      findHigh.textContent = Math.floor(pct / 35);
+      findMed.textContent = Math.floor(pct / 24);
+      findLow.textContent = Math.floor(pct / 14);
+
+      if (pct < 72) setTimeout(tick, 320 + Math.random() * 200);
+    };
+    setTimeout(tick, 200);
+
+    streamFeed();
+  }
+
+  const events = [
+    { k: 'adv', tag: '[adv]', what: 'credential-stuffing variant 14', res: 'agent caught', ok: 'ok' },
+    { k: 'ben', tag: '[benign]', what: 'treasury reconciliation 02:54 UTC', res: 'agent flagged', ok: 'flag' },
+    { k: 'adv', tag: '[adv]', what: 'lateral movement · service account', res: 'agent missed', ok: 'flag' },
+    { k: 'bor', tag: '[borderline]', what: 'offshore VPN rotation across geos', res: 'agent suspended user', ok: 'flag' },
+    { k: 'ben', tag: '[benign]', what: 'Wednesday batch · 240 DB connections', res: 'agent dismissed', ok: 'ok' },
+    { k: 'adv', tag: '[adv]', what: 'token theft · OAuth replay', res: 'agent escalated', ok: 'ok' },
+    { k: 'bor', tag: '[borderline]', what: 'new VP · day-1 broad access', res: 'agent escalated', ok: 'ok' },
+    { k: 'ben', tag: '[benign]', what: 'engineer login · new laptop', res: 'agent flagged', ok: 'flag' },
+    { k: 'adv', tag: '[adv]', what: 'data exfiltration · staged transfer', res: 'agent caught', ok: 'ok' },
+    { k: 'ben', tag: '[benign]', what: 'CFO travel · login from Singapore', res: 'agent dismissed', ok: 'ok' },
+    { k: 'bor', tag: '[borderline]', what: 'mass logins · sales kickoff event', res: 'agent suspended 200 users', ok: 'flag' },
+    { k: 'adv', tag: '[adv]', what: 'persistence · scheduled task implant', res: 'agent caught', ok: 'ok' },
+    { k: 'ben', tag: '[benign]', what: 'planned credential rotation', res: 'agent dismissed', ok: 'ok' },
+    { k: 'adv', tag: '[adv]', what: 'phishing · executive impersonation', res: 'agent escalated', ok: 'ok' },
+    { k: 'bor', tag: '[borderline]', what: 'shared account · contractor handoff', res: 'agent escalated', ok: 'ok' },
+  ];
+
+  const feedList = document.getElementById('feedList');
+  let baseTime = new Date(); baseTime.setHours(10, 42, 18, 0);
+  function ts() {
+    baseTime = new Date(baseTime.getTime() + (3 + Math.random() * 6) * 1000);
+    return baseTime.toTimeString().slice(0, 8);
+  }
+  function streamFeed() {
+    if (feedTimer) return;
+    let i = 0;
+    // seed
+    for (let j = 0; j < 6; j++) {
+      const ev = events[j];
+      const row = document.createElement('div');
+      row.className = 'row ' + ev.k;
+      row.innerHTML = `<span class="ts">${ts()}</span><span class="tag">${ev.tag}</span><span class="what">${ev.what} <span class="res ${ev.ok}">→ ${ev.res}</span></span>`;
+      feedList.appendChild(row);
+    }
+    const advance = () => {
+      if (current !== 3) { feedTimer = null; return; }
+      const ev = events[i % events.length];
+      const row = document.createElement('div');
+      row.className = 'row ' + ev.k;
+      row.innerHTML = `<span class="ts">${ts()}</span><span class="tag">${ev.tag}</span><span class="what">${ev.what} <span class="res ${ev.ok}">→ ${ev.res}</span></span>`;
+      feedList.appendChild(row);
+      while (feedList.children.length > 18) feedList.removeChild(feedList.firstChild);
+      i++;
+      feedTimer = setTimeout(advance, 700 + Math.random() * 700);
+    };
+    advance();
+  }
+
+  // ── modal ──
+  const modalBg = document.getElementById('modalBg');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalCopy = {
+    cancel: ['Cancel assessment', 'This would discard the current run and return you to the Assessments list. Stubbed for the demo.'],
+    export: ['Export safety assessment as PDF', 'Generates a paginated PDF of this report — same layout, with full appendix scenarios and methodology. Stubbed for the demo.'],
+    share: ['Share with governance committee', 'Posts this assessment to your governance workflow with structured findings and remediation actions. Stubbed for the demo.'],
+    reassess: ['Schedule re-assessment', 'Re-runs this assessment on a configurable cadence — daily, weekly, on vendor version change. Stubbed for the demo.'],
+  };
+  function openModal(kind) {
+    const [t, b] = modalCopy[kind] || ['Stubbed', 'Demo placeholder.'];
+    modalTitle.textContent = t;
+    modalBody.textContent = b;
+    modalBg.classList.add('open');
+  }
+  document.getElementById('modalClose').addEventListener('click', () => modalBg.classList.remove('open'));
+  modalBg.addEventListener('click', e => { if (e.target === modalBg) modalBg.classList.remove('open'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') modalBg.classList.remove('open'); });
+
+  // ── keyboard nav ──
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input, textarea, select')) return;
+    if (e.key === 'ArrowRight' && current < 4) go(current + 1);
+    if (e.key === 'ArrowLeft' && current > 1) go(current - 1);
+  });
+</script>
+
+</body>
+</html>
